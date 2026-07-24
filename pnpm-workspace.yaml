@@ -1,0 +1,7 @@
+packages:
+  - 'vue/*'
+  - 'next/*'
+  - 'packages/*'
+allowBuilds:
+  sharp: true
+  vue-demi: true

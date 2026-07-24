@@ -1,0 +1,30 @@
+{
+  "name": "pilot-module-federation",
+  "version": "0.0.1",
+  "private": true,
+  "packageManager": "pnpm@11.14.0",
+  "engines": {
+    "node": "22.22.3",
+    "pnpm": "11.14.0"
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel --stream --filter \"./vue/**\" --filter \"./next/**\" dev",
+    "dev:composed": "pnpm -r --parallel --stream --filter \"./vue/host\" --filter \"./vue/remote\" --filter \"./next/host\" --filter \"./next/remote\" dev",
+    "dev:standalone": "pnpm -r --parallel --stream --filter \"./vue/standalone\" --filter \"./next/standalone\" dev",
+    "dev:vue": "pnpm -r --parallel --stream --filter \"./vue/**\" dev",
+    "dev:next": "pnpm -r --parallel --stream --filter \"./next/**\" dev",
+    "lint": "pnpm -r --if-present lint",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test",
+    "build": "pnpm -r --if-present build"
+  },
+  "devDependencies": {
+    "@types/node": "26.1.1",
+    "@typescript-eslint/eslint-plugin": "8.65.0",
+    "@typescript-eslint/parser": "8.65.0",
+    "eslint": "10.7.0",
+    "prettier": "3.9.6",
+    "typescript": "5.9.3",
+    "vitest": "4.1.10"
+  }
+}

@@ -1,0 +1,41 @@
+# macOS
+.DS_Store
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+vue/*/dist/
+next/*/.next/
+next/*/out/
+coverage/
+playwright-report/
+test-results/
+
+# Tool caches
+.vite/
+*.tsbuildinfo
+
+# Local configuration
+.env
+.env.*
+!.env.example
+*.local
+
+# Claude Code local machine settings
+.claude/settings.local.json
+
+# Editors
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
