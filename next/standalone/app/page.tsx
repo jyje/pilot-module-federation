@@ -43,7 +43,7 @@ export default function StandalonePage() {
 
       <section
         aria-label="Deployment monitor and event ledger"
-        className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,2fr)_minmax(18rem,0.8fr)]"
+        className="grid grid-cols-1 gap-4 min-[900px]:grid-cols-[minmax(0,2fr)_minmax(18rem,0.8fr)]"
       >
         <div className="min-h-[28rem] rounded-[var(--radius)] border border-[hsl(var(--platform-border))] bg-[hsl(var(--platform-surface))] p-[clamp(0.75rem,2vw,1.25rem)]">
           <Monitor
