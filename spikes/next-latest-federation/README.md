@@ -1,5 +1,7 @@
 # Spike — latest Next.js Module Federation (`@module-federation/nextjs-mf`)
 
+**Language:** [English](README.md) · [한국어](README-ko.md)
+
 **Verdict: `INVALIDATED`**
 
 ## Given / When / Then

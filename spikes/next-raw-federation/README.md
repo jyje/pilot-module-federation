@@ -1,5 +1,7 @@
 # Spike — Next.js Module Federation via raw `webpack.container.ModuleFederationPlugin`
 
+**Language:** [English](README.md) · [한국어](README-ko.md)
+
 **Verdict: `PARTIAL` — validated and adopted for stateless federated components; hook-based singleton sharing across independently-built Next apps remains unresolved.**
 
 ## Why this spike exists

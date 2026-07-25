@@ -1,5 +1,7 @@
 # Cross-framework UI-in-UI Module Federation pilot implementation plan
 
+**Language:** [English](2026-07-20_114438-pilot-module-federation.md) · [한국어](2026-07-20_114438-pilot-module-federation-ko.md)
+
 > **For Hermes:** Use subagent-driven-development skill to implement this plan task-by-task after the owner approves `TASK.md`.
 
 **Goal:** Build one local-first pilot that compares the same UI-in-UI scenario across Vue 3 and the latest Next.js, using Host, Remote, and non-composed Standalone applications per framework and documenting Module Federation against iframe, Web Components, and orchestration alternatives.

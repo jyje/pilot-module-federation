@@ -1,5 +1,7 @@
 # Microsoft Playwright MCP live QA — `v0.1.0`
 
+**Language:** [English](playwright-mcp-v0.1.0.md) · [한국어](playwright-mcp-v0.1.0-ko.md)
+
 **Date:** 2026-07-25
 **Tooling:** `@playwright/mcp@0.0.78` (project-scoped `playwright-project` server), production previews (`vite preview` / `next start`), Node `v22.22.3`.
 **Scope:** all 8 target surfaces — {Vue, Next} × {Remote standalone, Standalone baseline, Host+Federation, Host+iframe}.

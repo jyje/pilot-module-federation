@@ -1,5 +1,7 @@
 # Frontend design direction
 
+**Language:** [English](design-direction.md) · [한국어](design-direction-ko.md)
+
 ## Subject
 
 - **Product:** AI Platform Console and Model Deployment Monitor
