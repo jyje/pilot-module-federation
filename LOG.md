@@ -574,3 +574,362 @@ Issues, constraints, experiments, and resolutions discovered during implementati
   command result rather than evidence of substantive lint coverage.
 - **Scope boundary:** No commit, remote creation/configuration, push, or
   release operation was performed.
+
+## 2026-07-25
+
+### D-006 — Parallel dev command verification and TASK.md reconciliation
+
+- **Status:** Resolved — five parallel commands verified; four TASK.md
+  accuracy defects corrected.
+- **Method:** Started each root command detached, waited for readiness,
+  probed every allocated port with `curl`, then sent `SIGINT` to the root
+  `pnpm` process and re-checked listeners with `lsof`.
+- **`pnpm dev`:** `Scope: 6 of 10 workspace projects`. All six servers bound
+  their allocated ports and returned `200`: Vue Host `4173`, Vue Remote
+  `4174`, Vue Standalone `4175`, Next Host `3000`, Next Remote `3001`, Next
+  Standalone `3002`. Logs carried package prefixes (`vue/host dev:`,
+  `next/remote dev:`, …) via `--stream`.
+- **`pnpm dev:composed`:** `Scope: 4 of 10`; only `3000`, `3001`, `4173`,
+  `4174` bound. **`pnpm dev:standalone`:** `Scope: 2 of 10`; only `3002` and
+  `4175` bound. **`pnpm dev:vue` / `pnpm dev:next`:** filters resolve to
+  exactly their three package directories.
+- **Termination:** `SIGINT` to the root process left zero listeners on all
+  six ports for all three parallel commands. No orphaned dev server survived.
+- **TASK.md defects corrected:**
+  1. Section 6 was entirely unchecked although `docs/design-direction.md` and
+     D-001 satisfy twelve of its thirteen items.
+  2. Section 7 was entirely unchecked although all three Vue apps already
+     carry the full nine-component shadcn-vue set and all six apps have
+     `components.json` (`reka-nova` for Vue, `radix-nova` for Next).
+  3. Section 4's parallel-command and Next-port items were unchecked although
+     the scripts existed; they are now checked against the evidence above.
+  4. Section 9's "Conditional Next Federation" items sat open although I-006
+     closed the question; they are now resolved as N/A, leaving only the
+     honest "unsupported in this version" UI state as real work.
+- **Gates demoted for honesty:** `pnpm lint` and `pnpm test` were marked
+  passing in the `v0.1.0` quality gate. Neither is a real gate yet — no
+  package declares a `lint` script, so ESLint never runs, and no Next app
+  declares a `test` script, so the entire Next track is skipped.
+- **`.mcp.json` defect:** it declares two identical Playwright MCP servers
+  (`playwright` and `playwright-project`), both `npx @playwright/mcp@latest`.
+  Two browser servers competing for one profile is a live-QA hazard; one
+  entry should be removed. Resolved MCP version observed: `0.0.78`. Node
+  observed: `v22.22.3`.
+- **Missing directories:** `e2e/`, `docs/validation/`, and
+  `artifacts/screenshots/readme/` do not exist although `README.md` already
+  prints them as workspace structure.
+- **Scope boundary:** Documentation reconciliation only. No application code
+  was modified, and no commit, remote creation/configuration, push, or
+  release operation was performed.
+
+### D-007 — Next.js Remote/Standalone/Host implementation and Vue error-boundary parity
+
+- **Status:** Resolved. All three Next apps now have real, tested
+  implementations in place of their scaffolds; Vue Remote/Standalone gained
+  the error-boundary state flagged as missing in D-006.
+- **Test infrastructure:** Added `vitest`, `jsdom`, `@testing-library/react`,
+  `@testing-library/user-event`, `@testing-library/jest-dom`, and
+  `@vitejs/plugin-react` to all three Next apps, each with its own
+  `vitest.config.ts` and `test/setup.ts`. `next/remote/test/monitor.test.ts`
+  (previously unrunnable per D-006) now executes.
+- **Next Remote:** Rewrote `lib/monitor.ts` to reuse `deploymentsForModel`/
+  `modelNameForId` from `@pilot/fixtures` instead of a hardcoded
+  `modelId === 'model-y' ? 'Model Y' : 'Model X'` ternary, and made `selected`
+  return `undefined` instead of throwing for an unresolvable model. Added
+  `lib/context.ts` (`resolveContextFromQuery`, `modelNameForId`) and
+  `lib/frame-adapter.ts`, both direct ports of the Vue Remote equivalents.
+  Built `components/pulse-rail.tsx` and `components/monitor.tsx` with shadcn
+  (Alert/Card/Skeleton/Button) reproducing `DeploymentPulseRail.vue`/
+  `Monitor.vue` state-for-state (loading skeleton, empty alert, degraded
+  alert + acknowledge, timeline). Rewrote `app/page.tsx` to use these instead
+  of the inline-`style` prototype from D-006, preserving its context-query
+  resolution and postMessage wiring. 25/25 tests, `tsc --noEmit` clean,
+  `next build` succeeds. Production preview (`next start -H 127.0.0.1 -p
+  3001`) served `200` with "Model X"/"healthy" in the server-rendered HTML.
+- **Next Standalone:** Duplicated Remote's `monitor.tsx`/`pulse-rail.tsx`/
+  `lib/monitor.ts` (per-app ownership, no cross-app import, matching the Vue
+  track's existing duplication pattern). Added `lib/context.ts` (option
+  helpers), `lib/event-ledger.ts` (a `useEventLedger` hook using
+  `useState`/`useRef`, tested via `@testing-library/react`'s `renderHook`),
+  `components/context-controls.tsx` (Radix `Select`, tested via a
+  `vi.mock('../components/ui/select', ...)` swap to a native `<select>` —
+  the React equivalent of the Vue tests' pragmatic choice to drive the
+  Select component directly rather than simulate full Radix pointer/keyboard
+  interaction in jsdom), and `components/event-ledger-panel.tsx`. Composed
+  in `app/page.tsx`; added `test/architecture-guard.test.ts` (a Next/React
+  port of the Vue Standalone guard: no cross-app import, no
+  `@module-federation`, no `<iframe>`, no `postMessage`). 31/31 tests,
+  `tsc --noEmit` clean, `next build` succeeds.
+- **Next Host:** Added `lib/host-frame-adapter.ts` (`buildRemoteUrl`/
+  `parseRemoteMessage`/`postContextToRemote`, a direct port of
+  `hostFrameAdapter.ts`), `lib/event-ledger.ts` (with a `source: 'federation'
+  | 'iframe'` field, matching Vue Host's ledger), `components/
+  composition-controls.tsx` (Radix Tabs), `components/iframe-panel.tsx`
+  (loading/ready/error states, an 8s-configurable timeout, retry via iframe
+  remount, exact-origin `postMessage` both directions), and
+  `components/federation-unsupported.tsx` — a new evidence-backed Alert
+  naming `next@16.2.11`, `@module-federation/nextjs-mf@8.8.71`'s Next 12–15
+  peer range, and the I-006 `INVALIDATED` verdict, shown when the Federation
+  tab is selected instead of a live panel. Composed in `app/page.tsx`,
+  defaulting to iframe mode. 39/39 tests, `tsc --noEmit` clean, `next build`
+  succeeds.
+  - Two fake-timer tests (`iframe-panel.test.tsx`) initially failed because
+    `setStatus('error')` fired by a `vi.advanceTimersByTimeAsync`-triggered
+    `setTimeout` callback needs the state update flushed inside `act()`, and
+    a follow-up `userEvent.click` on the retry button hung indefinitely under
+    `vi.useFakeTimers()` (userEvent's internal scheduling depends on real
+    timers even with `delay: null`). Resolved by wrapping the timer advance
+    in `await act(async () => { await vi.advanceTimersByTimeAsync(1000); })`
+    and using `fireEvent.click` instead of `userEvent.click` for the
+    fake-timer retry test specifically.
+- **Live browser verification (Playwright MCP browser pane):** Built and
+  started `next-host` (`127.0.0.1:3000`) and `next-remote` (`127.0.0.1:3001`)
+  as production previews. Confirmed in a real browser: the Host renders the
+  iframe-composed Remote by default; the Host ledger records a `monitor-ready`
+  entry on load; switching the composition tab to **Federation** renders the
+  `FederationUnsupported` evidence Alert (naming `16.2.11`, `nextjs-mf`,
+  `INVALIDATED`) instead of a blank or silently-hidden option; switching back
+  to **iframe** and clicking the degraded pulse-rail node *inside* the framed
+  Remote updated the Remote's own view (Model X / degraded / 2/4 / 412ms) and
+  posted `deployment-selected: deploy-002` to the Host's ledger with the
+  `iframe` source badge — the full cross-origin `postMessage` round trip,
+  observed live, not just asserted in jsdom.
+- **Bind-host fix:** `next dev`/`next start` defaulted to binding all
+  interfaces (`*:PORT`), while Vite explicitly binds `127.0.0.1`. Added
+  `-H 127.0.0.1` to all three Next apps' `dev`/`start` scripts so the
+  exact-origin `postMessage` checks compare against a real, consistent origin
+  in both dev and production preview. Verified via `lsof` before/after.
+- **Vue error-boundary backport:** D-006 flagged that only the Host owns
+  failure UX — a directly-opened Remote has no error surface. Added
+  `ErrorBoundary.vue` (`onErrorCaptured` + a Retry button, `role="alert"` via
+  the existing `Alert` primitive) to both `vue/remote` and `vue/standalone`,
+  wrapping `Monitor` in each `App.vue`. 26/26 `vue/remote` tests, 39/39
+  `vue/standalone` tests; both builds still succeed. One test-writing
+  subtlety: a component's `setup()` throw is caught synchronously by
+  `onErrorCaptured`, but the boundary's own re-render (driven by a reactive
+  `ref`) only lands on the next microtask, so assertions need `await
+  nextTick()` after mounting a throwing child.
+- **Lint made real:** `pnpm lint` was `pnpm -r --if-present lint`, which
+  passed vacuously because no package declared a `lint` script. Changed the
+  root script to `eslint .` directly. This surfaced two real defects, both
+  fixed:
+  1. `eslint.config.mjs` didn't ignore generated output — `vue/host/
+     @mf-types/` (Module Federation DTS, itself a defect: see below),
+     `next-env.d.ts`, and `*.tsbuildinfo` produced 231 errors on code no one
+     authored. Added `**/@mf-types/**`, `**/*.tsbuildinfo`, and
+     `**/next-env.d.ts` to the ignore list.
+  2. Two `// eslint-disable-next-line react-hooks/exhaustive-deps` comments
+     in the new `iframe-panel.tsx` referenced a rule from
+     `eslint-plugin-react-hooks`, which isn't installed in this repo's
+     minimal `@typescript-eslint`-only config. Removed the comments; the
+     underlying effect-dependency choices are intentional (see the file) and
+     don't need a suppressed lint rule that doesn't exist here.
+- **Found and fixed: `vue/host/@mf-types/` was accidentally committed.**
+  While chasing the lint failures above, `git ls-files` showed 23 files under
+  `vue/host/@mf-types/` — Module Federation's generated Remote-type-declaration
+  output — tracked in git since the `8a6c65f` initial commit. This is build
+  output, not source (regenerates on every `vite dev`/`vite build`).
+  `git rm -r --cached` untracked it and `.gitignore` gained `**/@mf-types/`.
+  Also untracked `next/{host,remote,standalone}/next-env.d.ts`: Next rewrites
+  this file's import path between `./.next/types/routes.d.ts` (after
+  `build`) and `./.next/dev/types/routes.d.ts` (after `dev`), so it churned
+  in `git status` depending on which command last ran; gitignored per
+  Next's own template convention.
+- **Full workspace verification:** `pnpm lint && pnpm typecheck && pnpm test
+  && pnpm build` all exit `0`. Test count: `230/230` across all 9 packages
+  with tests (`@pilot/contracts` 9, `@pilot/design-tokens` 7, `@pilot/
+  fixtures` 6, `next-remote` 25, `next-standalone` 31, `next-host` 39,
+  `vue-host` 48, `vue-remote` 26, `vue-standalone` 39) — zero skipped,
+  zero failed.
+- **Scope boundary:** No commit, remote creation/configuration, push, or
+  release operation was performed. Playwright Test E2E, the full Playwright
+  MCP live-QA matrix (Section 11), the README rewrite, and 130% screenshots
+  remain open — see `TASK.md` Section 14, Stage C/D.
+
+### D-008 — Next.js Module Federation, for real: raw `webpack.container.ModuleFederationPlugin`, plus Playwright Test E2E
+
+- **Status:** Resolved. Next Federation moved from "documented as unsupported"
+  (D-007) to "implemented and verified live in the browser," via a mechanism
+  that never touches `@module-federation/nextjs-mf`. I-006's `INVALIDATED`
+  verdict for that specific package is unchanged and still correct.
+- **Why this happened:** After D-007 shipped an honest evidence-backed
+  "Federation unsupported at next@16.2.11" state, the owner directed that
+  stopping there missed the point of the pilot — the project exists to find
+  working alternatives, not just to report that the first thing tried failed.
+  The owner explicitly instructed completing a real, visible Next Federation
+  implementation while keeping the `nextjs-mf` incompatibility tracked as an
+  issue rather than silently downgrading Next or abandoning the investigation.
+
+#### Spike: `spikes/next-raw-federation/` — verdict `PARTIAL — adopted`
+
+- **Key finding:** `next@16.2.11` bundles `webpack@5.98.0` internally
+  (`next/dist/compiled/webpack/webpack.js`), and that bundle's
+  `webpack.container.ModuleFederationPlugin` — webpack's own first-class
+  Module Federation implementation — works. `@module-federation/nextjs-mf`
+  is a convenience wrapper around this same plugin that also patches
+  Next-version-specific internals; the crash in I-006 was in *that patching*,
+  not in Module Federation itself.
+- **Debugging path** (each fix carried forward to the next step; full detail
+  and evidence in the spike README):
+  1. Remote-only `exposes` config compiles and serves `remoteEntry.js` —
+     already further than `nextjs-mf` ever got on this Next version.
+  2. Host `remotes` + `React.lazy(() => import('next_remote_spike/Widget'))`
+     fails to *build*: `Module not found`. Next's server compiler also needs
+     to statically resolve the specifier even though the component is
+     client-only. Fixed by applying the federation config to both the
+     `isServer` and client webpack passes.
+  3. Builds, but the widget never renders (`Loading remote widget…` forever,
+     no error). Root cause: Next hardcodes the same chunk-loading global
+     (`self.webpackChunk_N_E`) for every app; the remote's container executes
+     inside the host's page and pushes onto the *host's* chunk array, whose
+     chunk-ID map has no entries for the remote's own async chunks. Fixed
+     with `config.output.uniqueName` set to a distinct string per app.
+  4. Still stalls: Next splits its runtime bootstrap into a separate
+     `webpack-*.js` chunk, shared across that app's own pages only —
+     `remoteEntry.js`, loaded standalone in the host's page, never gets it,
+     so `self.webpackChunk<uniqueName>.push` is never patched into a real
+     handler. Fixed with `config.optimization.runtimeChunk = false`
+     (`remoteEntry.js` grew from 589 bytes to a self-contained 6087).
+  5. Still stalls in the browser only — manually calling
+     `window.<name>.get('./Widget')` from the console succeeded. Root cause:
+     `remoteEntry.js` has no content hash in its filename, and Next serves it
+     `Cache-Control: public, max-age=31536000, immutable` — the browser never
+     revalidates it, even on a hard reload, once cached. Worked around with a
+     `?v=<timestamp>` cache-busting query during the spike; the adopted
+     implementation instead sets `Cache-Control: no-store` on that one path.
+  6. With all four fixes: **a stateless exposed component renders correctly,
+     live, cross-origin, in a real browser** (Playwright MCP browser pane,
+     page text: *"Hello from Next Remote via raw webpack Module
+     Federation"*, fetched from `127.0.0.1:3911` into `127.0.0.1:3910`'s
+     own React tree at request time).
+  7. Repeated with a `useState`-using widget: crashes,
+     `TypeError: Cannot read properties of null (reading 'useState')` — the
+     classic two-independent-React-copies failure, since no `shared` config
+     was declared.
+  8. Added `shared: { react: {..., eager: true}, 'react-dom': {...} }`:
+     immediate uncaught `ScriptExternalLoadError` client-side exception.
+  9. Removed `eager`, added `Access-Control-Allow-Origin: *` on the remote's
+     static assets (a real cross-origin MF requirement in general): no more
+     crash, but back to the same silent stall as step 3 —
+     `container.get()` still resolves manually, but the page's own
+     `React.lazy` promise never settles. **Not resolved within the spike's
+     time-box** — tracked as I-018.
+- **Verdict:** `PARTIAL — adopted`. Stateless federation is proven and
+  adopted. Stateful (hook-using) federation between two independently-built
+  Next apps needs further work; sidestepped rather than blocked on, per below.
+- **Disposition:** Spike `host/`/`remote/` source removed after the verdict
+  per project policy (matching I-006's own disposal); `README.md` retained
+  as the evidence record.
+
+#### Adopted implementation: `next/remote` + `next/host`
+
+- **Architectural choice, not a workaround:** the Federation-exposed component
+  (`next/remote/components/federated-monitor.tsx`) is deliberately stateless —
+  it takes `selectedId`/`acknowledgedIds` as props and reports selection/
+  acknowledgement via callbacks, exactly mirroring how the Host already owns
+  composition and event-ledger state. This sidesteps I-018 entirely (no
+  hooks in the exposed component ⇒ no need for cross-bundle React singleton
+  sharing) rather than depending on that unresolved gap being fixed.
+- Extracted a shared, hook-free `components/monitor-view.tsx` out of the
+  existing `Monitor` component so the stateful (`Monitor`, used by Standalone
+  and Remote's own direct preview) and stateless (`FederatedMonitor`, used by
+  Federation) variants render identical markup from one source instead of
+  two copies that could drift.
+- `next/remote/next.config.ts`: `output.publicPath` (absolute, env-driven),
+  `output.uniqueName`, `optimization.runtimeChunk = false`, CORS on
+  `/_next/static/:path*`, `Cache-Control: no-store` specifically on
+  `remoteEntry.js`, `ModuleFederationPlugin` exposing `./FederatedMonitor`.
+  `next/host/next.config.ts`: the same `uniqueName`/`runtimeChunk` treatment
+  plus `remotes` pointing at the Remote's `remoteEntry.js`, applied to both
+  `isServer` compilations (step 2 above). Both apps' `dev`/`build` scripts
+  gained `--webpack` (Turbopack cannot run webpack plugins). Both required
+  `transpilePackages: ['@pilot/contracts', '@pilot/fixtures',
+  '@pilot/design-tokens']` — webpack (unlike Turbopack) needs to be told
+  explicitly to transform raw-TS workspace packages resolved outside the
+  app's own directory via pnpm's symlinks.
+- `next/host/components/federation-panel.tsx`: a class-based
+  `FederationErrorBoundary` (`getDerivedStateFromError`, no hook-based
+  equivalent exists in React) wraps a `Suspense` around
+  `lazy(loadFederatedMonitor)`; `key={attempt}` on the boundary forces a full
+  remount on Retry so `hasError` resets and a fresh `lazy()`/`import()` is
+  attempted. `next/host/lib/load-federated-monitor.ts` isolates the bare
+  `next_remote/FederatedMonitor` specifier in its own module — Vite/Vitest
+  cannot resolve that specifier (it only exists as a webpack `remotes`
+  alias), so every test mocks the *wrapper module* rather than the raw
+  specifier, mirroring how the Vue Host's tests mock `@module-federation/
+  runtime` instead of trying to resolve a remote entry URL.
+- **Live browser verification** (Playwright MCP, real `next start` previews,
+  `127.0.0.1:3000`/`3001`): Federation tab renders the real, hooks-based
+  Monitor — Model X, healthy, pulse rail. Clicking the degraded node updates
+  the federated view (Model X / degraded / 2/4 / 412ms / acknowledge alert)
+  *and* posts a Host-ledger entry (`federation` badge, `deploy-002`).
+  Clicking Acknowledge dismisses the alert and posts a second ledger entry.
+  Zero console errors throughout.
+- **Tests:** `federated-monitor.test.tsx` (4, stateless-controlled behavior),
+  `federation-panel.test.tsx` (2, lazy-load + state ownership + context-change
+  reset), `federation-panel-error.test.tsx` (2, fallback + retry). `next/
+  remote` grew from 25 → 29 tests, `next/host` from 39 → 42 (net, after also
+  removing the four `federation-unsupported` tests).
+- **Removed:** `components/federation-unsupported.tsx` and its test — no
+  longer accurate now that Federation actually works.
+
+#### Playwright Test E2E
+
+- Added `@playwright/test@1.62.0`, `playwright.config.ts` (six `webServer`
+  entries — three `vite preview`, three `next start` — `reuseExistingServer`
+  outside CI), `e2e/origins.ts`, and six spec files: `remote-standalone`,
+  `standalone-baseline`, `vue-composition` (Federation + iframe),
+  `next-composition` (iframe + the new real Federation),
+  `remote-recovery` (iframe outage/retry × {Vue, Next}, Federation
+  outage/retry × {Vue, Next}, via `page.route(...).abort()`/`.continue()`
+  rather than actually killing a server process — deterministic, no
+  process-lifecycle races, and it exercises the identical fallback/retry UI
+  contract either way).
+- **`16/16` passing.** Two authoring bugs caught and fixed before the first
+  full green run: `getByText('degraded')` and `getByText('Model X')` each
+  matched two elements (a `CardDescription`/`Select`-value plus an
+  `AlertTitle`/`CardTitle`) under Playwright's strict mode; both narrowed to
+  `{ exact: true }`.
+- `next-composition.spec.ts`'s Federation test, written for D-007's
+  now-removed `FederationUnsupported` state, was rewritten to assert the
+  real working panel instead.
+
+#### Lint fix
+
+- `pnpm lint` failed after the federation config landed:
+  `@typescript-eslint/no-require-imports` on the `require('next/dist/
+  compiled/webpack/webpack')` calls in both `next.config.ts` files. This
+  `require()` is intentional — there is no ESM-importable type surface for
+  Next's internal bundled webpack, and importing a separate `webpack`
+  devDependency risks a version mismatch with whatever Next bundles
+  internally. Added scoped `eslint-disable-next-line` comments (on the exact
+  line, not a multi-line block — an `eslint-disable-next-line` followed by a
+  *second* `//` comment line only disables the line immediately below the
+  first comment, not the one after the second; this bit twice while writing
+  the fix).
+
+#### Open issue
+
+- **I-018 — Async React-singleton sharing between independently-built Next
+  apps does not complete.** `shared: { react: { singleton: true }, ... }`
+  (non-eager, the webpack default) leaves `container.get()` resolving
+  correctly when called manually from the console, but the page's own
+  `React.lazy`/`import()` promise never settles — no thrown error, no
+  console warning, just a permanent pending state. `eager: true` instead
+  produces an immediate uncaught `ScriptExternalLoadError`. Not blocking:
+  the adopted Federation implementation is fully stateless and needs no
+  singleton sharing. Would matter for a future federated surface that
+  genuinely needs Host and Remote to share one React instance (e.g. context
+  providers spanning the boundary). Candidates not yet tried: a
+  hand-written synchronous shared-scope handshake instead of relying on
+  webpack's generated async negotiation, or fully bundling react/react-dom
+  into the remote (no sharing at all) and accepting the bundle-size cost.
+- **Full workspace verification:** `pnpm lint && pnpm typecheck && pnpm test
+  && pnpm build` all exit `0`. `pnpm e2e` — `16/16`. Test count:
+  `237/237` (`@pilot/contracts` 9, `@pilot/design-tokens` 7, `@pilot/
+  fixtures` 6, `next-remote` 29, `next-standalone` 31, `next-host` 42,
+  `vue-host` 48, `vue-remote` 26, `vue-standalone` 39).
+- **Scope boundary:** No commit, remote creation/configuration, push, or
+  release operation was performed. The structured Section 11 Playwright MCP
+  live-QA matrix, the README rewrite, and 130% screenshots remain open —
+  see `TASK.md` Section 14, Stage C/D.
