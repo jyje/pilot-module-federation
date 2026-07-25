@@ -3,6 +3,16 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/*
+ * Module Federation carries the FederatedMonitor's JS across the origin
+ * boundary but not its CSS — Tailwind only compiles utility classes it finds
+ * used in *this* app's own source. Without this, any utility class the
+ * federated component uses that this app doesn't happen to also use (e.g.
+ * `gap-8`) silently has no rule at all once rendered inside the Host.
+ */
+@source "../../remote/components";
+@source "../../remote/app";
+
 @custom-variant dark (&:is(.dark *));
 
 /*
