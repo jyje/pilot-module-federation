@@ -5,6 +5,7 @@ import { DEFAULT_CONTEXT } from '@pilot/fixtures';
 import { Badge } from './components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
 import ContextControls from './components/ContextControls.vue';
+import ErrorBoundary from './components/ErrorBoundary.vue';
 import EventLedgerPanel from './components/EventLedgerPanel.vue';
 import Monitor from './components/Monitor.vue';
 import { createEventLedger } from './lib/eventLedger';
@@ -46,11 +47,13 @@ function recordEvent(event: MonitorEvent): void {
 
     <section class="composition-grid" aria-label="Deployment monitor and event ledger">
       <div class="composition-stage">
-        <Monitor
-          :context="context"
-          @deployment-selected="(id) => recordEvent({ type: 'deployment-selected', deploymentId: id })"
-          @alert-acknowledged="(id) => recordEvent({ type: 'alert-acknowledged', deploymentId: id })"
-        />
+        <ErrorBoundary>
+          <Monitor
+            :context="context"
+            @deployment-selected="(id) => recordEvent({ type: 'deployment-selected', deploymentId: id })"
+            @alert-acknowledged="(id) => recordEvent({ type: 'alert-acknowledged', deploymentId: id })"
+          />
+        </ErrorBoundary>
       </div>
       <EventLedgerPanel :entries="ledger.entries.value" />
     </section>

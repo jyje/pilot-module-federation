@@ -2,6 +2,7 @@
 import { onMounted, onUnmounted, reactive } from 'vue';
 import type { DeploymentContext, MonitorEvent } from '@pilot/contracts';
 import { DEFAULT_CONTEXT } from '@pilot/fixtures';
+import ErrorBoundary from './components/ErrorBoundary.vue';
 import Monitor from './components/Monitor.vue';
 import { resolveContextFromQuery } from './lib/context';
 import { parseHostContextMessage, postMessageToHost } from './lib/frameAdapter';
@@ -48,11 +49,13 @@ onUnmounted(() => {
       <p class="remote-shell__eyebrow">Model Deployment Monitor</p>
       <h1 class="remote-shell__title">Vue Remote</h1>
     </header>
-    <Monitor
-      :context="context"
-      @deployment-selected="(id) => forwardToHost({ type: 'deployment-selected', deploymentId: id })"
-      @alert-acknowledged="(id) => forwardToHost({ type: 'alert-acknowledged', deploymentId: id })"
-    />
+    <ErrorBoundary>
+      <Monitor
+        :context="context"
+        @deployment-selected="(id) => forwardToHost({ type: 'deployment-selected', deploymentId: id })"
+        @alert-acknowledged="(id) => forwardToHost({ type: 'alert-acknowledged', deploymentId: id })"
+      />
+    </ErrorBoundary>
   </main>
 </template>
 
