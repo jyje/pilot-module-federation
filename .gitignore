@@ -14,6 +14,12 @@ coverage/
 playwright-report/
 test-results/
 
+# Module Federation generated types
+**/@mf-types/
+
+# Next generated route types (rewritten by dev vs. build)
+next/*/next-env.d.ts
+
 # Tool caches
 .vite/
 *.tsbuildinfo
