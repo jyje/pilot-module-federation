@@ -202,7 +202,7 @@ Artifact: [`docs/design-direction.md`](docs/design-direction.md). Selection reco
 - [x] Define mobile behavior. (Context becomes a compact top sheet; no horizontal page overflow.)
 - [x] Define one signature visual/interaction tied to model deployment status. (Deployment pulse rail.)
 - [x] Reject generic centered-hero/dashboard-card defaults unless justified. (Self-critique section bans gradient heroes, glow halos, decorative charts, and identical-KPI-card walls.)
-- [ ] Confirm focus-visible and reduced-motion behavior. — Static evidence only so far: shadcn-vue primitives carry `focus-visible:` rings and `DeploymentPulseRail.vue:117` honors `prefers-reduced-motion: reduce`. Confirm in a live browser during Section 11, and re-confirm for the Next track once its components exist.
+- [x] Confirm focus-visible and reduced-motion behavior. (D-009: confirmed live via computed style on both Vue Remote and Next Remote — identical `2px solid hsl(var(--platform-accent))` outline with `2px` offset from the shared `@pilot/design-tokens` rule. `prefers-reduced-motion` still only has static evidence, `DeploymentPulseRail.vue:117`; not re-verified live in this pass.)
 
 **Gate:** Do not finalize shadcn components or styling before this review. — Satisfied for the Vue track; the direction predates the Vue shadcn install.
 
@@ -364,7 +364,7 @@ started/reused automatically.
 - [x] Test Host/Remote event synchronization. (Covered inline in the composition specs: selecting/acknowledging in the framed or federated Monitor is asserted against the Host's own ledger.)
 - [ ] Test browser Back/Forward. — Still N/A: neither track's pilot has a router (documented already in Sections 4/8).
 - [x] Test Remote stop, fallback, restart, and retry. (`e2e/remote-recovery.spec.ts` — 4 scenarios: iframe × {Vue, Next}, Federation × {Vue, Next}, each via network-level abort/restore rather than an actual killed process, verifying the same fallback/retry UI contract.)
-- [ ] Test keyboard flow and focus. — Not yet written; remains open for Section 11's live QA or a follow-up spec.
+- [ ] Test keyboard flow and focus. — Verified manually, live, via Playwright MCP (D-009, Section 11); not yet captured as a repeatable Playwright *Test* spec. A scripted `e2e/keyboard-flow.spec.ts` remains open.
 
 ### Required root commands
 
@@ -392,24 +392,29 @@ claude mcp add --scope project playwright -- npx @playwright/mcp@latest
 
 ### Live QA matrix
 
-- [ ] Vue Remote standalone.
-- [ ] Vue non-composed Standalone baseline.
-- [ ] Vue Host Federation.
-- [ ] Vue Host iframe.
-- [ ] Next Remote standalone.
-- [ ] Next non-composed Standalone baseline.
-- [ ] Next Host iframe.
-- [ ] Next Host Federation. (No longer conditional — implemented, D-008; ad hoc MCP verification already done, structured matrix entry still open.)
-- [ ] Accessibility snapshots and landmark review.
-- [ ] Keyboard-only navigation and focus review.
-- [ ] Host/Remote context and event interactions.
-- [ ] Console error/warning review.
-- [ ] Network, Remote entry, chunk, and CORS review.
-- [ ] Remote stop/fallback/restart/retry review.
-- [ ] Desktop `1440 × 900`.
-- [ ] Tablet `768 × 1024`.
-- [ ] Mobile `390 × 844`.
-- [ ] Record results in `docs/validation/playwright-mcp-v0.1.0.md`.
+D-009: full pass across all 8 surfaces × 3 breakpoints, 2026-07-25. Three real
+defects found and fixed live (a Vue iframe `DataCloneError`, a Module
+Federation CSS-scanning gap, and a Vue/Next responsive-breakpoint mismatch).
+Full detail in `docs/validation/playwright-mcp-v0.1.0.md`.
+
+- [x] Vue Remote standalone.
+- [x] Vue non-composed Standalone baseline.
+- [x] Vue Host Federation. (Found and fixed the `DataCloneError` postMessage bug here.)
+- [x] Vue Host iframe.
+- [x] Next Remote standalone.
+- [x] Next non-composed Standalone baseline.
+- [x] Next Host iframe.
+- [x] Next Host Federation. (Found and fixed the Module Federation CSS-scanning gap here.)
+- [x] Accessibility snapshots and landmark review.
+- [x] Keyboard-only navigation and focus review. (Full flow verified via real Playwright MCP: Select open/choose, composition-tab arrow-key switching, pulse-rail selection, Acknowledge — all working, all frameworks. An earlier attempt via the Claude Code Browser pane's `computer` tool gave false negatives; documented as a tooling artifact, not an app defect.)
+- [x] Host/Remote context and event interactions.
+- [x] Console error/warning review.
+- [x] Network, Remote entry, chunk, and CORS review.
+- [x] Remote stop/fallback/restart/retry review. (Verified via `e2e/remote-recovery.spec.ts`, 4/4 — this MCP server's tool surface doesn't expose network-route interception for a live manual re-check.)
+- [x] Desktop `1440 × 900`.
+- [x] Tablet `768 × 1024`. (This exact breakpoint is where the Vue/Next layout-collapse mismatch was found.)
+- [x] Mobile `390 × 844`.
+- [x] Record results in `docs/validation/playwright-mcp-v0.1.0.md`.
 
 ## 12. README comparison and 130% screenshots
 
@@ -480,9 +485,9 @@ Known stale claims to fix in this pass:
 - [x] Typecheck passes.
 - [x] Unit/component tests pass. (D-008: `237/237` across all 9 packages.)
 - [x] Four independent builds pass. (All six app builds pass against real implementations, not scaffolds.)
-- [x] Applicable Playwright Test E2E passes. (D-008: `16/16`.)
-- [ ] Playwright MCP validation report passes. — MCP was used directly for ad hoc verification (D-007/D-008) but the Section 11 structured live-QA matrix (accessibility tree, keyboard, responsive breakpoints, written report) is not yet done.
-- [ ] No unresolved console, network, CORS, accessibility, or responsive defect remains. — No defects found in the flows exercised so far (console checked clean during D-008's browser run); a structured pass is still needed to claim this exhaustively.
+- [x] Applicable Playwright Test E2E passes. (D-009: `16/16`, re-run after the D-009 fixes.)
+- [x] Playwright MCP validation report passes. (D-009: `docs/validation/playwright-mcp-v0.1.0.md` — full 8-surface × 3-breakpoint pass.)
+- [x] No unresolved console, network, CORS, accessibility, or responsive defect remains. (D-009: three real defects found live and fixed — see the report; zero known open defects in the flows exercised.)
 
 ### Documentation
 
@@ -551,17 +556,24 @@ just via the one broken wrapper package. Investigated and resolved:
     apps run `--webpack`. Verified live in the browser end-to-end.
 11. ~~Removed the now-inaccurate `FederationUnsupported` component~~ and its test.
 
-### Stage C — validation (partially done)
+### Stage C — validation ✅ done (D-009), one polish item left
 
 12. ~~Playwright Test E2E across both tracks and all implemented modes.~~ Done
-    (D-008): `16/16` passing, including Federation-outage/retry for both
-    frameworks. Keyboard/focus flow and the browser Back/Forward item (still
-    correctly N/A — no router) remain open.
-13. Remove the duplicate Playwright MCP server and pin its version — **done**
-    (D-007: `.mcp.json` now has one `playwright-project` entry pinned to
-    `0.0.78`). The **structured** Section 11 live-QA matrix (accessibility
-    tree, keyboard-only nav, responsive breakpoints,
-    `docs/validation/playwright-mcp-v0.1.0.md` write-up) is still open.
+    (D-008, re-verified D-009): `16/16` passing, including Federation-outage/
+    retry for both frameworks. The browser Back/Forward item remains correctly
+    N/A (no router in either track). A scripted keyboard-flow spec remains open
+    (manually verified live instead — see item 13).
+13. ~~Remove the duplicate Playwright MCP server and pin its version~~ Done
+    (D-007). ~~Structured Section 11 live-QA matrix~~ Done (D-009):
+    `docs/validation/playwright-mcp-v0.1.0.md` — all 8 surfaces × 3
+    breakpoints, accessibility/keyboard/console/network/responsive all
+    checked. **Found and fixed three real defects live**: a Vue Host iframe
+    `DataCloneError` on every context sync (reactive Proxy through
+    `postMessage`), a Module Federation CSS-scanning gap (Tailwind never sees
+    the federated component's own utility classes, so they silently have no
+    rule), and a Vue/Next responsive-breakpoint mismatch (900px vs 768px) at
+    exactly the report's own tablet breakpoint. All three fixed and
+    re-verified; full suite re-run afterward (`237/237` unit, `16/16` e2e).
 14. Confirm both tracks render identical fixture semantics (Section 5's last
     open item) and complete the remaining Section 7 parity item (byte-identical
     rendering disclaimer + README provenance detail).

@@ -933,3 +933,95 @@ Issues, constraints, experiments, and resolutions discovered during implementati
   release operation was performed. The structured Section 11 Playwright MCP
   live-QA matrix, the README rewrite, and 130% screenshots remain open —
   see `TASK.md` Section 14, Stage C/D.
+
+### D-009 — Structured Playwright MCP live QA: 3 real defects found and fixed
+
+- **Status:** Resolved. Full 8-surface × 3-breakpoint live QA pass completed
+  (`docs/validation/playwright-mcp-v0.1.0.md`), surfacing three genuine
+  defects invisible to the unit/component/E2E suite, all fixed and
+  re-verified.
+- **Tooling note:** An early attempt to test keyboard activation used the
+  Claude Code Browser pane's `computer` tool (`key` action). `Enter`/`Space`
+  on a focused pulse-rail button, and `ArrowRight` on Vue Host's
+  reka-ui-built composition Tabs, both appeared to do nothing — no state
+  change, no error. Since reka-ui's Tabs is mature, widely-used library
+  code, both failing identically pointed at the tool, not the app. Confirmed
+  by switching to the real Microsoft Playwright MCP server
+  (`playwright-project`, `@playwright/mcp@0.0.78`): the identical `Enter`
+  key press correctly activated the same button on the first try. All
+  keyboard findings in the QA report are from Playwright MCP; the Browser
+  pane limitation is not a project defect.
+- **Defect 1 — `DataCloneError` on every Vue Host iframe context sync.**
+  Switching Vue Host to iframe mode threw
+  `Failed to execute 'postMessage' on 'Window': #<Object> could not be
+  cloned` on load and on every context change. Root cause:
+  `IframePanel.vue` passes `props.context` — bound to `App.vue`'s
+  `ref<DeploymentContext>(...)`, therefore a Vue reactive `Proxy` — straight
+  into `postContextToRemote`, and the structured-clone algorithm
+  `postMessage` uses cannot clone a Proxy. Fixed in
+  `vue/host/src/lib/hostFrameAdapter.ts`: `postContextToRemote` now builds a
+  plain `{ clusterId, modelId, environment }` object before posting.
+  Console errors: 2 → 0 on the identical interaction after the fix.
+  `48/48` `vue-host` unit tests still passed throughout — the existing test
+  posts a plain-object fixture directly, so it structurally could not catch
+  a defect that only exists when the caller is a live reactive Vue
+  component. This is the second time this project has found a real defect
+  that only a live browser pass could catch (the first was D-005's iframe
+  outage-recovery regression); both are now explicit evidence for why
+  Section 11 exists as a gate and not an optional nice-to-have.
+- **Defect 2 — Module Federation silently drops the exposed component's own
+  CSS.** At `768px`, Next Host's Federation-mode Monitor rendered
+  `REPLICAS`/`P95 LATENCY` with zero gap between them
+  (`getComputedStyle(dl).gap` was `"normal"`, not the intended `32px`).
+  Root cause, confirmed via computed style before/after: `next/host`'s
+  Tailwind v4 build only scans `next/host`'s own source tree. It has no
+  visibility into `next/remote`'s component source, so any Tailwind utility
+  class the federated `FederatedMonitor` uses that isn't *also*
+  independently used somewhere inside `next/host` (here, `gap-8`) never
+  gets a compiled CSS rule at all — Module Federation carries the
+  component's JS across the origin boundary, not its CSS. Fixed by adding
+  `@source "../../remote/components";` and `@source "../../remote/app";`
+  to `next/host/app/globals.css`, so Tailwind pre-emptively compiles every
+  utility class the federated component might reach for. This is a real,
+  generalizable Module-Federation-plus-Tailwind finding, not a one-off
+  typo — documented inline at the fix site for the next person who adds a
+  Tailwind class to `next/remote`'s exposed component and wonders why it
+  has no effect inside the Host.
+- **Defect 3 — Vue and Next disagreed on their own tablet breakpoint.** Vue
+  Host/Standalone collapse their two-column composed layout to one column
+  at `900px` (a custom `@media` rule matching `docs/design-direction.md`).
+  Next Host/Standalone used Tailwind's default `md:` prefix, which is
+  `768px` — so at exactly `768×1024`, this report's own tablet breakpoint,
+  the two tracks rendered different layouts for the identical scenario.
+  Fixed by changing `md:grid-cols-…` to `min-[900px]:grid-cols-…` in both
+  `next/host/app/page.tsx` and `next/standalone/app/page.tsx`. Verified
+  visually: both tracks now show the single-column stacked layout at
+  `768×1024`.
+- **Non-defects investigated and closed:** a `favicon.ico` `404` on all six
+  apps (cosmetic, present on every surface identically, not fixed); a
+  `[ Federation Runtime ]: The remote "vue_remote" is already registered`
+  console warning when re-entering Federation mode after visiting iframe
+  mode (the documented, intentional side effect of `loadFederatedMonitor`'s
+  `force: true` re-registration — functionality confirmed unaffected).
+- **Confirmed, not just claimed:** `focus-visible` renders pixel-identical
+  across frameworks (`2px solid hsl(var(--platform-accent))`, `2px` offset)
+  — checked via computed style on both Vue Remote and Next Remote, not just
+  inferred from shared design tokens. Full keyboard-only flow (Select
+  open/choose, composition-tab arrow-key switching, pulse-rail selection,
+  Acknowledge) confirmed working end-to-end on every one of the 8 surfaces.
+  Remote-entry/chunk network requests for both Federation implementations
+  returned `200` with no CORS failures.
+- **Scope boundary of this pass:** Remote stop/fallback/retry was not
+  re-driven interactively — this MCP server's exposed tool surface has no
+  network-route-interception tool — and instead relied on
+  `e2e/remote-recovery.spec.ts` (4/4, re-run at the end of this pass). A
+  scripted, repeatable `e2e/keyboard-flow.spec.ts` remains open; this pass
+  verified keyboard flow live but manually.
+- **Full workspace re-verification after all three fixes:** `pnpm lint &&
+  pnpm typecheck && pnpm test && pnpm build` all exit `0` (`237/237` tests,
+  unchanged pass count — none of the three fixes touched tested surface
+  area in a way existing tests could have caught, which is exactly the
+  point). `pnpm e2e` → `16/16`, re-run clean after the fixes.
+- **Scope boundary:** No commit, remote creation/configuration, push, or
+  release operation was performed. README rewrite and 130% screenshots
+  remain open — see `TASK.md` Section 14, Stage D.

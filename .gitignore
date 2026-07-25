@@ -23,6 +23,7 @@ next/*/next-env.d.ts
 # Tool caches
 .vite/
 *.tsbuildinfo
+.playwright-mcp/
 
 # Local configuration
 .env
