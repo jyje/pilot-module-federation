@@ -424,45 +424,45 @@ Use `.claude/skills/centered-readme/SKILL.md`.
 
 Known stale claims to fix in this pass:
 
-- [ ] Rewrite "Important Next.js compatibility constraint". — It still says the Next track *"starts with a compatibility spike"* that *"will report"* a verdict. The full story is now two-layered: `@module-federation/nextjs-mf` is `INVALIDATED` (I-006) and unused, but a raw `webpack.container.ModuleFederationPlugin` alternative is implemented and working (D-008, `spikes/next-raw-federation/README.md`). State both, precisely — don't collapse to a single "Federation doesn't work on Next" claim, which would now be false.
-- [ ] Relabel "Planned root commands". — All five parallel commands are implemented and verified (D-006); drop "Planned" and add the filtered one-app examples.
-- [ ] Update the "conditional Federation" wording in the framework matrix's Next row. — No longer conditional: both tracks now list Federation, iframe, and non-composed standalone as implemented composition targets. Note the Next Federation boundary's one real constraint (stateless/prop-controlled exposed component; see I-018) so the comparison stays honest rather than implying byte-identical mechanisms.
+- [x] Rewrite "Important Next.js compatibility constraint". — Replaced by the README's "Module Federation on the latest Next.js" section: states `@module-federation/nextjs-mf` is `INVALIDATED` (I-006) and unused, and that a raw `webpack.container.ModuleFederationPlugin` alternative is implemented and working (D-008, `spikes/next-raw-federation/README.md`), with the I-018 stateless-component constraint spelled out.
+- [x] Relabel "Planned root commands". — README's "Getting started" section presents `pnpm dev` and the filtered variants (`dev:composed`, `dev:standalone`, `dev:vue`, `dev:next`) as implemented, plus a per-app filter example (`pnpm --filter @pilot/next-host dev`).
+- [x] Update the "conditional Federation" wording in the framework matrix's Next row. — Framework matrix now lists "Federation, iframe, non-composed standalone" for both tracks with no "conditional" qualifier; the Federation section explains the stateless/prop-controlled constraint (I-018) directly below it.
 
-- [ ] Centered project hero for `jyje/pilot-module-federation`.
-- [ ] `v0.0.1` Draft status until release gate.
-- [ ] Four-app architecture diagram.
-- [ ] pnpm monorepo and parallel-server explanation.
-- [ ] Product scenario and standalone/federated value.
-- [ ] Vue and Next outcome matrix.
-- [ ] Module Federation vs iframe comparison.
-- [ ] Web Components and single-spa alternatives.
-- [ ] shadcn/ui vs shadcn-vue provenance.
-- [ ] Next latest federation compatibility evidence.
-- [ ] Start, build, test, and MCP validation commands.
-- [ ] Known limitations and deferred work.
+- [x] Centered project hero for `jyje/pilot-module-federation`. (`README.md`/`README-ko.md`, `centered-readme` skill applied — stars badge + `[English](README.md) / [한국어](README-ko.md)` link row.)
+- [x] `v0.0.1` Draft status until release gate. (README "Status" section.)
+- [x] Four-app architecture diagram. (Pilot scenario ASCII diagram + Repository layout tree — six apps plus shared packages/spikes.)
+- [x] pnpm monorepo and parallel-server explanation. (Getting started + Repository layout sections.)
+- [x] Product scenario and standalone/federated value. (Pilot scenario section.)
+- [x] Vue and Next outcome matrix. (Framework matrix section.)
+- [x] Module Federation vs iframe comparison. (Composition comparison section.)
+- [x] Web Components and single-spa alternatives. (Composition comparison section, both explicitly described as not implemented in this pilot.)
+- [x] shadcn/ui vs shadcn-vue provenance. (Framework matrix note: `radix-nova` vs `reka-nova`, Vue port explicitly labelled.)
+- [x] Next latest federation compatibility evidence. (Module Federation on the latest Next.js section, linking both spike READMEs.)
+- [x] Start, build, test, and MCP validation commands. (Getting started + Validation sections.)
+- [x] Known limitations and deferred work. (Known limitations and deferred work section: I-018, no router, keyboard flow not yet scripted, missing favicon, no byte-identical rendering claim.)
 
 ### Screenshot policy
 
-- [ ] Capture production previews through Playwright MCP.
-- [ ] Use viewport `1440 × 900` for README desktop captures.
-- [ ] Inject temporary `document.documentElement.style.zoom = "1.3"` for capture only.
-- [ ] Wait for fonts, Remote chunks, and animation to settle.
-- [ ] Remove zoom after capture; never add it to production CSS.
-- [ ] Use full-width images, not small side-by-side thumbnails.
-- [ ] Use meaningful alt text.
-- [ ] Add a filled-triangle caption with wording identical to alt text.
-- [ ] Review readability in GitHub Markdown preview.
+- [x] Capture production previews through Playwright MCP.
+- [x] Use viewport `1440 × 900` for README desktop captures.
+- [x] Inject temporary `document.documentElement.style.zoom = "1.3"` for capture only.
+- [x] Wait for fonts, Remote chunks, and animation to settle.
+- [x] Remove zoom after capture; never add it to production CSS. (Zoom was only ever set via `evaluate` on the live page for the capture, never written to any `.css` file.)
+- [x] Use full-width images, not small side-by-side thumbnails.
+- [x] Use meaningful alt text.
+- [x] Add a filled-triangle caption with wording identical to alt text.
+- [x] Review readability in GitHub Markdown preview.
 
 ### Required images
 
-- [ ] Vue Host + Federation.
-- [ ] Vue Remote standalone.
-- [ ] Vue non-composed Standalone baseline.
-- [ ] Vue iframe comparison.
-- [ ] Next Remote standalone.
-- [ ] Next non-composed Standalone baseline.
-- [ ] Next iframe comparison.
-- [ ] Next Host + Federation. (No longer conditional — implemented, D-008.)
+- [x] Vue Host + Federation. (`artifacts/screenshots/readme/vue-host-federation.png`.)
+- [x] Vue Remote standalone. (`artifacts/screenshots/readme/vue-remote-standalone.png`.)
+- [x] Vue non-composed Standalone baseline. (`artifacts/screenshots/readme/vue-standalone-baseline.png`.)
+- [x] Vue iframe comparison. (`artifacts/screenshots/readme/vue-iframe-comparison.png`.)
+- [x] Next Remote standalone. (`artifacts/screenshots/readme/next-remote-standalone.png`.)
+- [x] Next non-composed Standalone baseline. (`artifacts/screenshots/readme/next-standalone-baseline.png`.)
+- [x] Next iframe comparison. (`artifacts/screenshots/readme/next-iframe-comparison.png`.)
+- [x] Next Host + Federation. (No longer conditional — implemented, D-008. `artifacts/screenshots/readme/next-host-federation.png`.)
 
 ## 13. `v0.1.0` first-push gate
 
@@ -491,11 +491,12 @@ Known stale claims to fix in this pass:
 
 ### Documentation
 
-- [ ] README reflects measured outcomes, not planned claims.
-- [ ] Alternatives comparison is complete.
-- [ ] 130% screenshots are readable and accurately captioned.
-- [ ] Next and Vue shadcn provenance is accurate.
-- [ ] `TASK.md` contains no false completed item.
+- [x] README reflects measured outcomes, not planned claims. (Full rewrite — see Section 12 checklist above.)
+- [x] Alternatives comparison is complete. (Composition comparison section: Federation, iframe, Remote direct preview, non-composed Standalone, Web Components, single-spa.)
+- [x] 130% screenshots are readable and accurately captioned. (8/8 required images captured and embedded with alt text + matching filled-triangle caption.)
+- [x] Next and Vue shadcn provenance is accurate. (Framework matrix: `radix-nova` shadcn/ui vs `reka-nova` shadcn-vue, Vue port stated explicitly.)
+- [x] `TASK.md` contains no false completed item. (This pass reconciled Sections 12/13 against actual README/screenshot state.)
+- [x] Stable documents translated into English/Korean pairs, per owner instruction. (README, `docs/design-direction.md`, `docs/validation/playwright-mcp-v0.1.0.md`, the architecture plan, and both spike READMEs each have a `-ko.md` twin with a language-link line; `TASK.md`/`LOG.md` intentionally remain English-only living checklists per owner's scoping answer.)
 
 ### Git and release
 
@@ -580,11 +581,16 @@ just via the one broken wrapper package. Investigated and resolved:
 
 ### Stage D — release preparation
 
-15. README rewrite — now a full rewrite of the Next-track sections from
-    "unsupported"/"planned" to "implemented", not just the items originally
-    flagged in Section 12, plus the new Federation architecture note (I-018).
-16. 130% screenshots, including the now-real Next Host + Federation shot.
-17. Version bump and the `v0.1.0` gate review.
+15. ~~README rewrite~~ Done — full rewrite of the Next-track sections from
+    "unsupported"/"planned" to "implemented", plus the new Federation
+    architecture note (I-018). `README.md`/`README-ko.md` both shipped.
+16. ~~130% screenshots, including the now-real Next Host + Federation shot.~~
+    Done — all 8 required images captured and embedded.
+17. ~~Translate stable documents into English/Korean pairs.~~ Done — README,
+    design direction, the Playwright MCP validation report, the architecture
+    plan, and both spike READMEs each have a `-ko.md` twin plus a language-link
+    line; `TASK.md`/`LOG.md` stay English-only per owner's scoping decision.
+18. Version bump and the `v0.1.0` gate review.
 
 **Sequencing rule:** do not start Stage C before Stage B is complete for a
 given mode. A validation report that predates the feature it validates is the
