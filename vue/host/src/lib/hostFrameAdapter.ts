@@ -32,5 +32,13 @@ export function postContextToRemote(
   remoteOrigin: string,
   context: DeploymentContext,
 ): void {
-  target.postMessage({ type: 'context', payload: context }, remoteOrigin);
+  // `context` is frequently a Vue reactive proxy (a ref's object value); the
+  // structured clone algorithm postMessage uses cannot clone that proxy, so
+  // send a plain object instead.
+  const payload: DeploymentContext = {
+    clusterId: context.clusterId,
+    modelId: context.modelId,
+    environment: context.environment,
+  };
+  target.postMessage({ type: 'context', payload }, remoteOrigin);
 }
