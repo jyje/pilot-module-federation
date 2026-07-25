@@ -13,7 +13,7 @@
     "dev:standalone": "pnpm -r --parallel --stream --filter \"./vue/standalone\" --filter \"./next/standalone\" dev",
     "dev:vue": "pnpm -r --parallel --stream --filter \"./vue/**\" dev",
     "dev:next": "pnpm -r --parallel --stream --filter \"./next/**\" dev",
-    "lint": "pnpm -r --if-present lint",
+    "lint": "eslint .",
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "pnpm -r --if-present test",
     "build": "pnpm -r --if-present build"
