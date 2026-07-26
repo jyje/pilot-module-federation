@@ -1,0 +1,22 @@
+{
+  "logs": [
+    "[platform-shell] session-established {userId: user-operator, tenantId: tenant-aurora, capabilities: deployments:read,observability:read,governance:read}",
+    "[vue-deployments-host] operator-action {tenantId: tenant-aurora, action: greet}",
+    "[platform-shell] remote-mounted {route: observability, tenantId: tenant-aurora}",
+    "[observability-remote] platform-context-received {userId: user-operator, tenantId: tenant-aurora, capabilities: deployments:read,observability:read,governance:read}",
+    "[observability-remote] session-api-authorized {tenantId: tenant-aurora}",
+    "[observability-remote] operator-action {tenantId: tenant-aurora, action: greet}",
+    "[platform-shell] remote-mounted {route: governance, tenantId: tenant-aurora}",
+    "[governance-remote] platform-context-received {userId: user-operator, tenantId: tenant-aurora, capabilities: deployments:read,observability:read,governance:read}",
+    "[governance-remote] session-api-authorized {tenantId: tenant-aurora}",
+    "[governance-remote] operator-action {tenantId: tenant-aurora, action: greet}"
+  ],
+  "apiResponses": [
+    "401 /api/auth/session",
+    "204 /api/auth/login",
+    "200 /api/auth/session",
+    "200 /api/deployments/summary",
+    "200 /api/observability/summary",
+    "200 /api/governance/summary"
+  ]
+}

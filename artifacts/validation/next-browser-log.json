@@ -1,0 +1,26 @@
+{
+  "logs": [
+    "[next-platform-shell] session-established {userId: user-operator, tenantId: tenant-aurora}",
+    "[next-platform-shell] operator-action {tenantId: tenant-aurora, team: MLOps}",
+    "[next-observability-remote] platform-context-received {userId: user-operator, tenantId: tenant-aurora}",
+    "[next-observability-remote] platform-context-received {userId: user-operator, tenantId: tenant-aurora}",
+    "[next-platform-shell] operator-action {tenantId: tenant-aurora, team: SRE}",
+    "[next-observability-remote] platform-context-received {userId: user-operator, tenantId: tenant-aurora}",
+    "[next-observability-remote] platform-context-received {userId: user-operator, tenantId: tenant-aurora}",
+    "[next-governance-remote] platform-context-received {userId: user-operator, tenantId: tenant-aurora}",
+    "[next-governance-remote] platform-context-received {userId: user-operator, tenantId: tenant-aurora}",
+    "[next-governance-remote] platform-context-received {userId: user-operator, tenantId: tenant-aurora}",
+    "[next-governance-remote] platform-context-received {userId: user-operator, tenantId: tenant-aurora}",
+    "[next-platform-shell] operator-action {tenantId: tenant-aurora, team: Security}",
+    "[next-governance-remote] platform-context-received {userId: user-operator, tenantId: tenant-aurora}",
+    "[next-governance-remote] platform-context-received {userId: user-operator, tenantId: tenant-aurora}"
+  ],
+  "responses": [
+    "401 /api/auth/session",
+    "204 /api/auth/login",
+    "200 /api/auth/session",
+    "200 /api/deployments/summary",
+    "200 /api/observability/summary",
+    "200 /api/governance/summary"
+  ]
+}
