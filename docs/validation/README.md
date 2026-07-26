@@ -1,13 +1,14 @@
 # Platform Shell validation
 
-Validated on 2026-07-26 with Playwright Chromium against Fastify, Vue `3000–3002`, and Next `4000–4002`. Both Host screenshots use the shared mission-rail shell and the framework-neutral [`platform.css`](../../packages/design-tokens/src/platform.css) contract.
+Validated on 2026-07-27 with Playwright Chromium against Fastify, Vue `3000–3002`, and Next `4000–4002`. Both Host screenshots use the shared mission-rail shell and the framework-neutral [`platform.css`](../../packages/design-tokens/src/platform.css) contract.
 
 ## Scenario
 
 1. Open the unauthenticated Vue Platform Shell at `http://127.0.0.1:3000`.
 2. Sign in as `Jiyoon Park` / `alex@aurora.example` with a non-empty local-demo password.
 3. Select Deployments, Observability, and Governance from the Host-owned mission rail.
-4. Require each federated Remote to render and call its own same-origin, cookie-authenticated API endpoint.
+4. Require each domain view to render and call its own same-origin, cookie-authenticated API endpoint where applicable.
+5. Trigger each team's hello action and capture its visible success status.
 
 The password, signed session-cookie value, and any token are intentionally absent from screenshots and logs.
 
@@ -17,25 +18,25 @@ The password, signed session-cookie value, and any token are intentionally absen
 
 ▲ Deployments Host view: MLOps shares the global control surface and is not a Remote deployment unit.
 
-![Observability Remote rendered in the Platform Shell, with the Observability mission-rail item active.](../../artifacts/validation/observability.png)
+![Vue Observability Remote with the active mission-rail item and the visible SRE hello success result.](../../artifacts/validation/observability.png)
 
-▲ Observability Remote: changing teams replaces only the outlet; the shared session context is retained.
+▲ Vue Observability Remote: changing teams replaces only the outlet; the SRE action confirms that the shared session context is retained.
 
-![Governance Remote rendered in the Platform Shell, with the Governance mission-rail item active.](../../artifacts/validation/governance.png)
+![Vue Governance Remote with the active mission-rail item and the visible Security hello success result.](../../artifacts/validation/governance.png)
 
-▲ Governance Remote: the Security surface receives the same tenant and capability context.
+▲ Vue Governance Remote: the Security action records a visible check-in using the same tenant and capability context.
 
 ![Next Host Deployments view, with the same persistent mission rail, Jiyoon Park identity, MLOps metrics, and interactive hello result.](../../artifacts/validation/next-deployments.png)
 
 ▲ Next Host Deployments view: this Host-owned surface has the same shell implementation and behavior as Vue.
 
-![Next Host rendering the independent Observability Remote over HTTP from port 4001, with the SRE route active and Jiyoon Park's shared session context.](../../artifacts/validation/next-observability.png)
+![Next Host rendering the independent Observability Remote over HTTP from port 4001, with the SRE route active and a visible hello success result.](../../artifacts/validation/next-observability.png)
 
-▲ Next Observability Remote: only the outlet changes; the Host keeps navigation and identity.
+▲ Next Observability Remote: only the outlet changes; the SRE action confirms the Host retains navigation, identity, and session context.
 
-![Next Host rendering the independent Governance Remote over HTTP from port 4002, with the Security route active and Jiyoon Park's shared session context.](../../artifacts/validation/next-governance.png)
+![Next Host rendering the independent Governance Remote over HTTP from port 4002, with the Security route active and a visible hello success result.](../../artifacts/validation/next-governance.png)
 
-▲ Next Governance Remote: shadcn/ui surfaces arrive as a remote runtime asset while the Host retains the shell.
+▲ Next Governance Remote: the Security action confirms remote interaction while the Host retains the shell.
 
 ## Browser console evidence
 
@@ -100,8 +101,11 @@ The raw capture is [`next-browser-log.json`](../../artifacts/validation/next-bro
 ## CSS parity evidence
 
 The six visible Vue and Next surfaces import the same semantic Flight Deck
-contract from `@pilot/design-tokens/platform.css`. Browser inspection of both
-Vue and Next Governance, plus Next Observability, recorded the same values:
+contract from `@pilot/design-tokens/platform.css`. `pnpm validate:css-parity`
+loads both Hosts and asserts that Login, the active mission-rail control,
+Sign out, and all three domain action buttons have identical computed styles
+across frameworks. The raw capture is
+[`css-parity.json`](../../artifacts/validation/css-parity.json).
 
 | Element | Shared computed value |
 | --- | --- |
@@ -109,6 +113,7 @@ Vue and Next Governance, plus Next Observability, recorded the same values:
 | Product text | Manrope Variable, `rgb(219, 230, 245)` |
 | Utility label | JetBrains Mono Variable, `rgb(57, 208, 183)` |
 | Primary action | `36px` height, `0 12px` padding, `6px` radius, `rgb(57, 208, 183)` background |
+| Button chrome | `1px` token border, `6px` radius, Manrope Variable `14px` / `600` |
 
 Governance uses the same accent as every other platform surface; warning yellow
 remains available only as a semantic status token, not as a team theme. The

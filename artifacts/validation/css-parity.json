@@ -1,0 +1,162 @@
+{
+  "vue": {
+    "login": {
+      "className": "platform-button",
+      "display": "flex",
+      "height": "36px",
+      "padding": "0px 12px",
+      "border": "1px solid rgb(57, 208, 183)",
+      "borderRadius": "6px",
+      "backgroundColor": "rgb(57, 208, 183)",
+      "color": "rgb(8, 13, 22)",
+      "fontFamily": "\"Manrope Variable\", Manrope, system-ui, sans-serif",
+      "fontSize": "14px",
+      "fontWeight": "600"
+    },
+    "navigation": {
+      "className": "platform-button platform-button--ghost rail-button active",
+      "display": "flex",
+      "height": "36px",
+      "padding": "0px 12px",
+      "border": "1px solid rgb(57, 208, 183)",
+      "borderRadius": "6px",
+      "backgroundColor": "rgb(8, 13, 22)",
+      "color": "rgb(219, 230, 245)",
+      "fontFamily": "\"Manrope Variable\", Manrope, system-ui, sans-serif",
+      "fontSize": "14px",
+      "fontWeight": "600"
+    },
+    "signOut": {
+      "className": "platform-button platform-button--outline",
+      "display": "flex",
+      "height": "36px",
+      "padding": "0px 12px",
+      "border": "1px solid rgb(35, 47, 67)",
+      "borderRadius": "6px",
+      "backgroundColor": "rgb(8, 13, 22)",
+      "color": "rgb(219, 230, 245)",
+      "fontFamily": "\"Manrope Variable\", Manrope, system-ui, sans-serif",
+      "fontSize": "14px",
+      "fontWeight": "600"
+    },
+    "deployments": {
+      "className": "platform-button",
+      "display": "flex",
+      "height": "36px",
+      "padding": "0px 12px",
+      "border": "1px solid rgb(57, 208, 183)",
+      "borderRadius": "6px",
+      "backgroundColor": "rgb(57, 208, 183)",
+      "color": "rgb(8, 13, 22)",
+      "fontFamily": "\"Manrope Variable\", Manrope, system-ui, sans-serif",
+      "fontSize": "14px",
+      "fontWeight": "600"
+    },
+    "observability": {
+      "className": "platform-button",
+      "display": "flex",
+      "height": "36px",
+      "padding": "0px 12px",
+      "border": "1px solid rgb(57, 208, 183)",
+      "borderRadius": "6px",
+      "backgroundColor": "rgb(57, 208, 183)",
+      "color": "rgb(8, 13, 22)",
+      "fontFamily": "\"Manrope Variable\", Manrope, system-ui, sans-serif",
+      "fontSize": "14px",
+      "fontWeight": "600"
+    },
+    "governance": {
+      "className": "platform-button",
+      "display": "flex",
+      "height": "36px",
+      "padding": "0px 12px",
+      "border": "1px solid rgb(57, 208, 183)",
+      "borderRadius": "6px",
+      "backgroundColor": "rgb(57, 208, 183)",
+      "color": "rgb(8, 13, 22)",
+      "fontFamily": "\"Manrope Variable\", Manrope, system-ui, sans-serif",
+      "fontSize": "14px",
+      "fontWeight": "600"
+    }
+  },
+  "next": {
+    "login": {
+      "className": "platform-button",
+      "display": "flex",
+      "height": "36px",
+      "padding": "0px 12px",
+      "border": "1px solid rgb(57, 208, 183)",
+      "borderRadius": "6px",
+      "backgroundColor": "rgb(57, 208, 183)",
+      "color": "rgb(8, 13, 22)",
+      "fontFamily": "\"Manrope Variable\", Manrope, system-ui, sans-serif",
+      "fontSize": "14px",
+      "fontWeight": "600"
+    },
+    "navigation": {
+      "className": "platform-button platform-button--ghost rail-button active",
+      "display": "flex",
+      "height": "36px",
+      "padding": "0px 12px",
+      "border": "1px solid rgb(57, 208, 183)",
+      "borderRadius": "6px",
+      "backgroundColor": "rgb(8, 13, 22)",
+      "color": "rgb(219, 230, 245)",
+      "fontFamily": "\"Manrope Variable\", Manrope, system-ui, sans-serif",
+      "fontSize": "14px",
+      "fontWeight": "600"
+    },
+    "signOut": {
+      "className": "platform-button platform-button--outline",
+      "display": "flex",
+      "height": "36px",
+      "padding": "0px 12px",
+      "border": "1px solid rgb(35, 47, 67)",
+      "borderRadius": "6px",
+      "backgroundColor": "rgb(8, 13, 22)",
+      "color": "rgb(219, 230, 245)",
+      "fontFamily": "\"Manrope Variable\", Manrope, system-ui, sans-serif",
+      "fontSize": "14px",
+      "fontWeight": "600"
+    },
+    "deployments": {
+      "className": "platform-button",
+      "display": "flex",
+      "height": "36px",
+      "padding": "0px 12px",
+      "border": "1px solid rgb(57, 208, 183)",
+      "borderRadius": "6px",
+      "backgroundColor": "rgb(57, 208, 183)",
+      "color": "rgb(8, 13, 22)",
+      "fontFamily": "\"Manrope Variable\", Manrope, system-ui, sans-serif",
+      "fontSize": "14px",
+      "fontWeight": "600"
+    },
+    "observability": {
+      "className": "platform-button",
+      "display": "flex",
+      "height": "36px",
+      "padding": "0px 12px",
+      "border": "1px solid rgb(57, 208, 183)",
+      "borderRadius": "6px",
+      "backgroundColor": "rgb(57, 208, 183)",
+      "color": "rgb(8, 13, 22)",
+      "fontFamily": "\"Manrope Variable\", Manrope, system-ui, sans-serif",
+      "fontSize": "14px",
+      "fontWeight": "600"
+    },
+    "governance": {
+      "className": "platform-button ",
+      "display": "flex",
+      "height": "36px",
+      "padding": "0px 12px",
+      "border": "1px solid rgb(57, 208, 183)",
+      "borderRadius": "6px",
+      "backgroundColor": "rgb(57, 208, 183)",
+      "color": "rgb(8, 13, 22)",
+      "fontFamily": "\"Manrope Variable\", Manrope, system-ui, sans-serif",
+      "fontSize": "14px",
+      "fontWeight": "600"
+    }
+  }
+}

@@ -49,6 +49,8 @@ describe('design tokens CSS', () => {
     expect(platformCss).toMatch(/\.domain-view/);
     expect(platformCss).toMatch(/\.metrics/);
     expect(platformCss).toMatch(/\.platform-button/);
+    expect(platformCss).toMatch(/\.platform-button\s*{[^}]*border:\s*1px solid hsl\(var\(--platform-accent\)\)[^}]*border-radius:\s*6px[^}]*appearance:\s*none/s);
+    expect(platformCss).toMatch(/\.platform-button--(?:outline|ghost|danger)/);
     expect(platformCss).not.toMatch(/platform-warning/);
   });
 

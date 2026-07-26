@@ -91,8 +91,8 @@ onUnmounted(() => window.removeEventListener('popstate', handlePopState));
   </main>
   <main v-else class="platform-shell">
     <aside class="mission-rail"><div class="brand">AP</div><p class="tenant">{{ session.tenant.name }}</p>
-      <nav aria-label="Platform navigation"><button v-for="item in navigation" :key="item.id" :class="['rail-button', { active: route === item.id }]" @click="navigate(item.id)"><span class="rail-dot" />{{ item.label }}</button></nav>
-      <div class="identity"><strong>{{ session.user.displayName }}</strong><span>{{ session.user.email }}</span><button class="rail-button" @click="signOut">Sign out</button></div>
+      <nav aria-label="Platform navigation"><button v-for="item in navigation" :key="item.id" :class="['platform-button', 'platform-button--ghost', 'rail-button', { active: route === item.id }]" @click="navigate(item.id)"><span class="rail-dot" />{{ item.label }}</button></nav>
+      <div class="identity"><strong>{{ session.user.displayName }}</strong><span>{{ session.user.email }}</span><button class="platform-button platform-button--outline" @click="signOut">Sign out</button></div>
     </aside>
     <section class="workspace"><header><p class="eyebrow">{{ route === 'deployments' ? 'Deployments / Host-owned' : activeRemote?.label + ' / HTTP Remote' }} / {{ session.tenant.id }}</p><p class="session-mark">Session shared · HttpOnly cookie</p></header>
       <div class="remote-outlet"><DeploymentsHostView v-if="route === 'deployments'" :platform="session" /><p v-else-if="remoteLoading" class="loading">Synchronizing team surface…</p><div v-else-if="remoteError" class="remote-error"><strong>Remote unavailable</strong><p>{{ remoteError }}</p><button class="platform-button" @click="mountRemote(true)">Retry</button></div><component :is="remote" v-else-if="remote" :platform="session" /></div>

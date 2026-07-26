@@ -15,7 +15,8 @@
     "lint": "eslint .",
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "pnpm -r --if-present test",
-    "build": "pnpm -r --if-present build"
+    "build": "pnpm -r --if-present build",
+    "validate:css-parity": "node scripts/validate-css-parity.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.62.0",
