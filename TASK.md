@@ -501,14 +501,14 @@ Known stale claims to fix in this pass:
 
 ### Git and release
 
-- [ ] Version changes from `0.0.1` to `0.1.0` only after review.
-- [ ] No credentials, session metadata, or unintended local paths are staged.
-- [ ] All local commits were individually approved.
-- [ ] Working tree is clean.
-- [ ] Owner reviews the final evidence.
-- [ ] Owner explicitly approves remote creation/configuration if still absent.
-- [ ] Owner separately states that remote push is currently possible.
-- [ ] Owner explicitly approves the exact push command immediately before execution.
+- [ ] Version changes from `0.0.1` to `0.1.0` only after review. — Owner-gated; version stays `0.0.1` until the owner reviews this section and explicitly says so.
+- [x] No credentials, session metadata, or unintended local paths are staged. (Checked every commit this session before staging; no `Claude-Session:` line, session URL, or local-path leakage in any commit message or diff — per the global no-session-metadata rule.)
+- [x] All local commits were individually approved. (Every commit in this session, including D-010's two, was presented with its exact message and only created after explicit owner approval, per `git-commit-helper`.)
+- [x] Working tree is clean. (`git status` → nothing to commit, working tree clean, as of the D-010 commits.)
+- [ ] Owner reviews the final evidence. — Owner-gated; pending.
+- [x] Owner explicitly approves remote creation/configuration if still absent. (Remote `jyje/pilot-module-federation` was created and configured with owner approval in an earlier session; `git remote -v` confirms `origin` is set.)
+- [ ] Owner separately states that remote push is currently possible. — Per-push gate; the owner's prior "이번만 푸시까지" approval was scoped to that one push and does not carry forward automatically.
+- [ ] Owner explicitly approves the exact push command immediately before execution. — Per-push gate; same as above.
 
 **Hard rule:** Completing this gate never authorizes a push automatically. Wait for the owner's separate availability instruction and exact push approval.
 
