@@ -1,6 +1,6 @@
 {
   "name": "@pilot/next-host",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": true,
   "scripts": { "dev": "next dev --webpack -H 127.0.0.1 -p 4000", "build": "next build --webpack", "typecheck": "tsc --noEmit" },
   "dependencies": {

@@ -10,7 +10,7 @@
 
 ## 상태
 
-`v0.0.1` 파일럿입니다. Vue와 Next 모두 Host 소유 Deployments, 독립 Observability·Governance HTTP Remote 토폴로지를 구현합니다.
+`v0.1.0` 파일럿 릴리즈입니다. Vue와 Next 모두 Host 소유 Deployments, 독립 Observability·Governance HTTP Remote 토폴로지를 구현합니다.
 
 ## 목표 아키텍처
 

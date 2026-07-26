@@ -36,6 +36,7 @@ The API remains `8787`. Deployments is Host-owned; the two remaining domain team
 - [x] Verify Host-owned `/observability` and `/governance` Next deep links resolve to the persisted Shell rather than a 404.
 - [x] Refresh validation screenshots, logs, README links, and port references.
 - [x] Remove the retired Vue Deployments Remote application after verifying it is unused.
+- [x] Cut `v0.1.0`: align all workspace package versions, generate the Git-Cliff changelog, clear the dependency audit, and pass lint, typecheck, test, and build gates.
 
 ## Deliberately deferred
 

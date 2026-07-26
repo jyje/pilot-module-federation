@@ -10,7 +10,7 @@ An AI Platform Shell that keeps login and global navigation while team-owned mic
 
 ## Status
 
-`v0.0.1` pilot. Both Vue and Next run the same topology: Host-owned Deployments plus independent Observability and Governance HTTP Remotes.
+`v0.1.0` pilot release. Both Vue and Next run the same topology: Host-owned Deployments plus independent Observability and Governance HTTP Remotes.
 
 ## Target architecture
 
