@@ -1025,3 +1025,48 @@ Issues, constraints, experiments, and resolutions discovered during implementati
 - **Scope boundary:** No commit, remote creation/configuration, push, or
   release operation was performed. README rewrite and 130% screenshots
   remain open — see `TASK.md` Section 14, Stage D.
+
+### D-010 — README/screenshot/i18n release pushed; scripted keyboard-flow E2E closes the last open test gap
+
+- **Status:** Resolved. Stage D's documentation work (README rewrite, 8
+  screenshots, EN/KO translation pass) was committed as three separate
+  commits and pushed to `origin/main` on the owner's explicit, one-time
+  approval ("이번만 푸시까지 진행해주세요"). This is the first remote push
+  for this repository.
+- **Commits pushed:** `docs(readme)` — README.md rewrite, README-ko.md, and
+  the 8 required `artifacts/screenshots/readme/*.png` captures;
+  `docs(i18n)` — Korean twins for the architecture plan, design-direction
+  doc, Playwright MCP validation report, and both spike READMEs, each with
+  a language-link line added to its English original; `docs(plan)` —
+  `TASK.md` Sections 12–14 reconciled against the shipped documentation
+  state. `TASK.md` and `LOG.md` were kept English-only per the owner's
+  explicit scoping answer when asked which documents needed translation.
+- **Scripted keyboard-flow E2E, closing the last item D-009 left open.**
+  D-009's live QA confirmed keyboard-only operability (Select, composition
+  tabs, pulse-rail selection, Acknowledge) manually via Playwright MCP, but
+  flagged that no repeatable Playwright *Test* spec existed yet. Added
+  `e2e/keyboard-flow.spec.ts`: 4 scenarios — {Vue, Next} × {Federation,
+  iframe} — each drives the same flow D-009 verified manually
+  (`.focus()` + `ArrowRight`/`Enter`, never `.click()`): switch the
+  composition tab, select the degraded pulse-rail node, confirm the ledger
+  records the selection, then dismiss its alert via Acknowledge and confirm
+  the ledger records `alert-acknowledged`. All 4 pass; full `pnpm e2e` is
+  now `20/20` (was `16/16`).
+- **TASK.md reconciliation beyond Sections 12–14:** several stale
+  unchecked items across Sections 1, 2, 4, 5, 7, and 8 were actually true
+  and just never marked — exact-version pinning in every `package.json`
+  (no `^`/`~` ranges), the `e2e/`/`docs/validation/`/
+  `artifacts/screenshots/readme/` directories (all existed and were
+  populated), `next-env.d.ts`/`@mf-types/`/`*.tsbuildinfo` already
+  gitignored, the README's byte-identical-rendering disclaimer and
+  shadcn/ui-vs-shadcn-vue provenance note, and the Vue-Federation
+  "no router" N/A note. Each was updated with a concrete evidence pointer
+  rather than just flipped to `[x]`.
+- **Full workspace re-verification:** `pnpm lint && pnpm typecheck &&
+  pnpm test` all exit `0` (`237/237` tests, unchanged — the new spec is
+  E2E, not unit). `pnpm build` succeeds across all nine workspace packages.
+  `pnpm e2e` → `20/20`.
+- **What remains:** only Stage D item 18 — the `0.0.1` → `0.1.0` version
+  bump and the owner's final `v0.1.0` gate review (Section 13's Git and
+  release checklist) — all of which is explicitly owner-gated and cannot be
+  performed unilaterally.

@@ -40,9 +40,9 @@ Detailed rationale: [`2026-07-20_114438-pilot-module-federation.md`](2026-07-20_
 - [x] Update `README.md` to the new project name and six-app scope.
 - [x] Update `CLAUDE.md` to the new plan path, project name, framework tracks, and validation gates.
 - [x] Verify no old `pilot-vue-module-federation` path remains.
-- [ ] Review and approve the revised initial commit message.
+- [x] Review and approve the revised initial commit message. (Owner approved a shorter final wording; actual initial commit is `8a6c65f 🎉 init(project): bootstrap cross-framework federation pilot`, not the draft text below — kept here only as the historical proposal.)
 
-### Revised draft commit proposal
+### Revised draft commit proposal (superseded — see actual `8a6c65f` above)
 
 ```text
 🎉 init(project): bootstrap v0.0.1 cross-framework planning workspace
@@ -60,8 +60,8 @@ reviewed implementation checklist.
 - [x] Record the implementation-date output of `npm view shadcn-vue version`. (`2.8.0`, re-confirmed 2026-07-24, matches snapshot.)
 - [x] Record the implementation-date output of `npm view @module-federation/vite version`. (`1.19.1`, re-confirmed 2026-07-24, matches snapshot.)
 - [x] Record the implementation-date output of `npm view @module-federation/nextjs-mf version peerDependencies --json`. (`8.8.71`, peers `next ^12 || ^13 || ^14 || ^15`, re-confirmed 2026-07-24; see spike verdict `INVALIDATED` in `spikes/next-latest-federation/README.md`.)
-- [ ] Lock reviewed exact versions in `package.json` and `pnpm-lock.yaml`.
-- [ ] Do not silently downgrade Next.js to obtain federation compatibility.
+- [x] Lock reviewed exact versions in `package.json` and `pnpm-lock.yaml`. (Every app `package.json` pins exact versions — no `^`/`~` ranges — e.g. `next@16.2.11`, `vue@3.5.40`, `@module-federation/vite@1.19.1`; `pnpm-lock.yaml` is committed and reviewed.)
+- [x] Do not silently downgrade Next.js to obtain federation compatibility. (Verified throughout: `next@16.2.11` end to end, in both the invalidated `nextjs-mf` spike and the adopted raw-webpack Federation implementation.)
 
 ### Current research snapshot
 
@@ -146,8 +146,8 @@ artifacts/screenshots/readme
 - [x] Create `packages/fixtures`.
 - [x] Create `packages/design-tokens`.
 - [x] Generate and review one `pnpm-lock.yaml`.
-- [ ] Create the three directories the structure above still only promises: `e2e/`, `docs/validation/`, and `artifacts/screenshots/readme/`. — All three are absent, yet `README.md` already prints them as workspace structure.
-- [ ] Stop tracking generated `next-env.d.ts`. — Next rewrites its import between `./.next/types/routes.d.ts` (after `build`) and `./.next/dev/types/routes.d.ts` (after `dev`), so all three files churn in `git status` depending on which command ran last. Gitignore them, as Next's own template advises.
+- [x] Create the three directories the structure above still only promises: `e2e/`, `docs/validation/`, and `artifacts/screenshots/readme/`. (All three exist and are populated: `e2e/` has 7 spec files, `docs/validation/` has the EN/KO QA report pair, `artifacts/screenshots/readme/` has the 8 required screenshots.)
+- [x] Stop tracking generated `next-env.d.ts`. (`.gitignore` line 21: `next/*/next-env.d.ts`; also `**/@mf-types/` and `**/*.tsbuildinfo`.)
 
 ### Parallel development commands
 
@@ -160,7 +160,7 @@ Runtime evidence: D-006.
 - [x] Add `pnpm dev:next` to run Next Host, Remote, and Standalone. (Filter resolves to exactly `next/host`, `next/remote`, `next/standalone`.)
 - [x] Stream package-prefixed logs. (`--stream` emits `vue/host dev:`, `next/remote dev:`, … prefixes.)
 - [x] Verify Ctrl+C terminates all child servers. (`SIGINT` to the root `pnpm dev` left zero listeners on all six ports for all three parallel commands.)
-- [ ] Add filtered one-app commands to README. — README still labels these "Planned root commands" and shows no concrete per-app filter example.
+- [x] Add filtered one-app commands to README. (README "Getting started" section: `pnpm --filter @pilot/next-host dev` example, plus `dev:composed`/`dev:standalone`/`dev:vue`/`dev:next`.)
 
 ### Port allocation
 
@@ -182,7 +182,7 @@ Runtime evidence: D-006.
 - [x] Keep shared packages framework-neutral.
 - [x] Do not put React, Vue, Router, or stores in shared packages.
 - [x] Add contract and fixture tests first. (RED/GREEN evidence in `LOG.md` D-002.)
-- [ ] Confirm both framework tracks render the same fixture semantics. — Deferred until apps consume the fixtures (Section 8/9).
+- [x] Confirm both framework tracks render the same fixture semantics. (`e2e/vue-composition.spec.ts` and `e2e/next-composition.spec.ts` both assert identical Model X / `deploy-002` behavior through the same Host; `e2e/remote-standalone.spec.ts` and `e2e/standalone-baseline.spec.ts` are parameterized over both frameworks against the same fixture data.)
 
 ## 6. Frontend design review
 
@@ -225,8 +225,8 @@ Artifact: [`docs/design-direction.md`](docs/design-direction.md). Selection reco
 ### Parity gate
 
 - [x] Compare component roles, spacing, typography, states, and accessibility. (D-007: both tracks now use Alert/Badge/Button/Card/Select/Skeleton/Table/Tabs/Tooltip for the same roles — loading skeleton, degraded alert + acknowledge action, pulse-rail selection, event-ledger badges. Fine-grained visual/accessibility comparison still needs the Section 11 live Playwright MCP pass.)
-- [ ] Do not claim byte-identical rendering.
-- [ ] Document official shadcn/ui vs shadcn-vue provenance accurately. — I-002 records the split; README still needs the `radix-nova` / `reka-nova` style-name detail.
+- [x] Do not claim byte-identical rendering. (README "Known limitations" section states this explicitly.)
+- [x] Document official shadcn/ui vs shadcn-vue provenance accurately. (README Framework matrix note: `radix-nova` shadcn/ui is the official Vercel React tooling; `reka-nova` shadcn-vue is stated as a Vue port, not a Vercel package.)
 
 ## 8. Vue 3 applications
 
@@ -272,7 +272,7 @@ Artifact: [`docs/design-direction.md`](docs/design-direction.md). Selection reco
 - [x] Configure runtime Remote URL and CORS.
 - [x] Load Remote in Host.
 - [x] Verify props/events, styles, failure, and retry. (D-005 production-preview outage/recovery evidence.)
-- [ ] Verify routing behavior. (The current Vue pilot has no router; do not infer Back/Forward behavior.)
+- [x] Verify routing behavior. (N/A by design: the Vue pilot has no router, documented in Sections 4/8/10; not inferred as untested.)
 - [x] Verify `remoteEntry.js` and chunks from Remote origin.
 - [x] Compare Federation and iframe behavior with the same fixture/context. (`e2e/vue-composition.spec.ts` exercises both modes against the identical Model X fixture through the same Host.)
 
@@ -349,7 +349,8 @@ See `spikes/next-raw-federation/README.md` and LOG.md D-008.
 
 ### Playwright Test E2E
 
-D-008: `playwright.config.ts` added; `pnpm e2e` → **16/16 passing**
+D-008: `playwright.config.ts` added; `pnpm e2e` → **16/16 passing**, now
+**20/20** after adding `e2e/keyboard-flow.spec.ts`
 (`@playwright/test@1.62.0`, chromium). All six preview servers (three Vue
 `vite preview`, three `next start`) are declared as `webServer` entries and
 started/reused automatically.
@@ -364,7 +365,7 @@ started/reused automatically.
 - [x] Test Host/Remote event synchronization. (Covered inline in the composition specs: selecting/acknowledging in the framed or federated Monitor is asserted against the Host's own ledger.)
 - [ ] Test browser Back/Forward. — Still N/A: neither track's pilot has a router (documented already in Sections 4/8).
 - [x] Test Remote stop, fallback, restart, and retry. (`e2e/remote-recovery.spec.ts` — 4 scenarios: iframe × {Vue, Next}, Federation × {Vue, Next}, each via network-level abort/restore rather than an actual killed process, verifying the same fallback/retry UI contract.)
-- [ ] Test keyboard flow and focus. — Verified manually, live, via Playwright MCP (D-009, Section 11); not yet captured as a repeatable Playwright *Test* spec. A scripted `e2e/keyboard-flow.spec.ts` remains open.
+- [x] Test keyboard flow and focus. (`e2e/keyboard-flow.spec.ts`, added this pass: 4 scenarios — {Vue, Next} × {Federation, iframe} — each switches the composition tab via `ArrowRight`, selects the degraded pulse-rail node via `Enter`, and dismisses its alert via `Enter` on Acknowledge, using only `.focus()` + key presses, no `.click()`. All 4 pass, verified alongside the rest of the suite: `20/20`.)
 
 ### Required root commands
 
@@ -372,7 +373,7 @@ started/reused automatically.
 - [x] `pnpm typecheck`
 - [x] `pnpm test` — D-008: whole-workspace `pnpm test` is `237/237` passing (9 packages, 0 skipped).
 - [x] `pnpm build`
-- [x] `pnpm e2e` — D-008: `16/16` passing.
+- [x] `pnpm e2e` — D-008: `16/16` passing; now `20/20` after adding `e2e/keyboard-flow.spec.ts` this pass.
 
 ## 11. Microsoft Playwright MCP validation
 
@@ -513,11 +514,14 @@ Known stale claims to fix in this pass:
 
 ## 14. Execution sequence for the remaining work
 
-Reconciled 2026-07-25 (D-006 → D-007 → D-008). Stages A, B, and B′ are now
-complete for both tracks. Both Vue and Next have production-verified
-Standalone, Host, and Remote apps with **all three** composition modes —
-Federation, iframe, non-composed standalone. Only Stage C's remaining
-structured-QA half and Stage D (release prep) are left.
+Reconciled 2026-07-26 (D-006 → D-007 → D-008 → D-009 → this pass). Stages A,
+B, B′, and C are now fully complete for both tracks. Both Vue and Next have
+production-verified Standalone, Host, and Remote apps with **all three**
+composition modes — Federation, iframe, non-composed standalone — and a full
+automated + live-QA validation record, including a scripted keyboard-flow
+E2E spec. Only Stage D item 18 (version bump and the owner's `v0.1.0` gate
+review) remains, and it is explicitly owner-gated — see Section 13's Git and
+release checklist.
 
 ### Stage A — unblock the Next track ✅ done (D-007)
 
@@ -557,13 +561,13 @@ just via the one broken wrapper package. Investigated and resolved:
     apps run `--webpack`. Verified live in the browser end-to-end.
 11. ~~Removed the now-inaccurate `FederationUnsupported` component~~ and its test.
 
-### Stage C — validation ✅ done (D-009), one polish item left
+### Stage C — validation ✅ fully done (D-009 + this pass)
 
 12. ~~Playwright Test E2E across both tracks and all implemented modes.~~ Done
     (D-008, re-verified D-009): `16/16` passing, including Federation-outage/
     retry for both frameworks. The browser Back/Forward item remains correctly
-    N/A (no router in either track). A scripted keyboard-flow spec remains open
-    (manually verified live instead — see item 13).
+    N/A (no router in either track). ~~A scripted keyboard-flow spec~~ Done
+    this pass: `e2e/keyboard-flow.spec.ts`, `20/20` total.
 13. ~~Remove the duplicate Playwright MCP server and pin its version~~ Done
     (D-007). ~~Structured Section 11 live-QA matrix~~ Done (D-009):
     `docs/validation/playwright-mcp-v0.1.0.md` — all 8 surfaces × 3
@@ -575,9 +579,9 @@ just via the one broken wrapper package. Investigated and resolved:
     rule), and a Vue/Next responsive-breakpoint mismatch (900px vs 768px) at
     exactly the report's own tablet breakpoint. All three fixed and
     re-verified; full suite re-run afterward (`237/237` unit, `16/16` e2e).
-14. Confirm both tracks render identical fixture semantics (Section 5's last
-    open item) and complete the remaining Section 7 parity item (byte-identical
-    rendering disclaimer + README provenance detail).
+14. ~~Confirm both tracks render identical fixture semantics~~ Done (Section 5)
+    and ~~complete the remaining Section 7 parity item~~ Done (byte-identical
+    rendering disclaimer + README provenance detail both now in README).
 
 ### Stage D — release preparation
 
