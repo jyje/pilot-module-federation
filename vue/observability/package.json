@@ -1,0 +1,9 @@
+{
+  "name": "@pilot/vue-observability",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": { "dev": "vite --port 3001 --strictPort", "build": "vue-tsc --noEmit && vite build", "typecheck": "vue-tsc --noEmit" },
+  "dependencies": { "@pilot/contracts": "workspace:*", "@pilot/design-tokens": "workspace:*", "vue": "3.5.40" },
+  "devDependencies": { "@module-federation/vite": "1.19.1", "@vitejs/plugin-vue": "6.0.8", "typescript": "5.9.3", "vite": "8.1.5", "vue-tsc": "3.3.8" }
+}

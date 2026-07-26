@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --port 4173 --strictPort",
+    "dev": "vite --port 3000 --strictPort",
     "build": "vue-tsc --noEmit && vite build",
-    "preview": "vite preview --port 4173 --strictPort",
+    "preview": "vite preview --port 3000 --strictPort",
     "typecheck": "vue-tsc --noEmit",
     "test": "vitest run"
   },

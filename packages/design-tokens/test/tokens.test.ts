@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { tokensCssPath } from '../src/index';
 
 const css = readFileSync(fileURLToPath(new URL('../src/tokens.css', import.meta.url)), 'utf-8');
+const platformCss = readFileSync(fileURLToPath(new URL('../src/platform.css', import.meta.url)), 'utf-8');
 
 describe('design tokens CSS', () => {
   it('defines every required semantic surface token', () => {
@@ -41,6 +42,14 @@ describe('design tokens CSS', () => {
 
   it('defines a visible focus outline using the accent token', () => {
     expect(css).toMatch(/:focus-visible\s*{[^}]*outline:[^}]*--platform-accent/s);
+  });
+
+  it('provides one framework-neutral Flight Deck surface contract', () => {
+    expect(platformCss).toMatch(/\.mission-rail/);
+    expect(platformCss).toMatch(/\.domain-view/);
+    expect(platformCss).toMatch(/\.metrics/);
+    expect(platformCss).toMatch(/\.platform-button/);
+    expect(platformCss).not.toMatch(/platform-warning/);
   });
 
   it('disables non-essential motion under prefers-reduced-motion', () => {

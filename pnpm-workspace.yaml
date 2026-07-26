@@ -1,8 +1,10 @@
 packages:
-  - 'vue/*'
+  - 'apps/*'
   - 'next/*'
+  - 'vue/*'
   - 'packages/*'
 allowBuilds:
+  esbuild: false
   sharp: true
   vue-demi: true
 minimumReleaseAgeExclude:

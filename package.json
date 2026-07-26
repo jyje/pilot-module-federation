@@ -8,16 +8,14 @@
     "pnpm": "11.14.0"
   },
   "scripts": {
-    "dev": "pnpm -r --parallel --stream --filter \"./vue/**\" --filter \"./next/**\" dev",
-    "dev:composed": "pnpm -r --parallel --stream --filter \"./vue/host\" --filter \"./vue/remote\" --filter \"./next/host\" --filter \"./next/remote\" dev",
-    "dev:standalone": "pnpm -r --parallel --stream --filter \"./vue/standalone\" --filter \"./next/standalone\" dev",
-    "dev:vue": "pnpm -r --parallel --stream --filter \"./vue/**\" dev",
-    "dev:next": "pnpm -r --parallel --stream --filter \"./next/**\" dev",
+    "dev": "pnpm -r --parallel --stream --filter \"./apps/api\" --filter \"./vue/**\" dev",
+    "dev:platform": "pnpm -r --parallel --stream --filter \"./apps/api\" --filter \"./vue/**\" dev",
+    "dev:next": "pnpm -r --parallel --stream --filter \"./apps/api\" --filter \"./next/**\" dev",
+    "dev:all": "pnpm -r --parallel --stream --filter \"./apps/api\" --filter \"./vue/**\" --filter \"./next/**\" dev",
     "lint": "eslint .",
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "pnpm -r --if-present test",
-    "build": "pnpm -r --if-present build",
-    "e2e": "playwright test"
+    "build": "pnpm -r --if-present build"
   },
   "devDependencies": {
     "@playwright/test": "1.62.0",

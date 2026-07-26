@@ -1,31 +1,29 @@
 import type { NextConfig } from 'next';
 
-const REMOTE_ORIGIN = process.env.NEXT_PUBLIC_NEXT_REMOTE_ORIGIN ?? 'http://127.0.0.1:3001';
+const observabilityOrigin = process.env.NEXT_PUBLIC_NEXT_OBSERVABILITY_ORIGIN ?? 'http://127.0.0.1:4001';
+const governanceOrigin = process.env.NEXT_PUBLIC_NEXT_GOVERNANCE_ORIGIN ?? 'http://127.0.0.1:4002';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  transpilePackages: ['@pilot/contracts', '@pilot/fixtures', '@pilot/design-tokens'],
+  transpilePackages: ['@pilot/contracts', '@pilot/design-tokens'],
+  async rewrites() {
+    return [{ source: '/api/:path*', destination: 'http://127.0.0.1:8787/api/:path*' }];
+  },
   webpack(config, { isServer }) {
-    // Both compilations must resolve the federated import statically — Next
-    // still bundles the `import()` call for its server pass even though the
-    // component only ever renders client-side (React.lazy). See
-    // spikes/next-raw-federation for the "Module not found" failure this
-    // avoids.
     if (!isServer) {
       config.output.uniqueName = 'next_host';
       config.optimization.runtimeChunk = false;
     }
-    // Reaches Next's own bundled webpack — see next/remote/next.config.ts.
+    // Use Next's bundled webpack so its Module Federation runtime matches Next.
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { webpack } = require('next/dist/compiled/webpack/webpack');
-    config.plugins.push(
-      new webpack.container.ModuleFederationPlugin({
-        name: isServer ? 'next_host_server' : 'next_host',
-        remotes: {
-          next_remote: `next_remote@${REMOTE_ORIGIN}/_next/static/chunks/remoteEntry.js`,
-        },
-      }),
-    );
+    config.plugins.push(new webpack.container.ModuleFederationPlugin({
+      name: isServer ? 'next_host_server' : 'next_host',
+      remotes: {
+        next_observability: `next_observability@${observabilityOrigin}/_next/static/chunks/remoteEntry.js`,
+        next_governance: `next_governance@${governanceOrigin}/_next/static/chunks/remoteEntry.js`,
+      },
+    }));
     return config;
   },
 };

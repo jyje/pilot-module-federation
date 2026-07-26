@@ -1,92 +1,46 @@
 import { defineComponent, h } from 'vue';
-import { describe, expect, it } from 'vitest';
-import { mount } from '@vue/test-utils';
+import { flushPromises, mount } from '@vue/test-utils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import App from '../src/App.vue';
 
-/**
- * App-level tests stub FederationPanel/IframePanel entirely so they never
- * trigger a real Module Federation import or a real iframe network request —
- * only App's own composition/context/ledger wiring is under test here.
- * FederationPanel and IframePanel's own loading/error/retry behavior is
- * covered independently in federation-panel.test.ts and iframe-panel.test.ts.
- */
-const FederationPanelStub = defineComponent({
-  name: 'FederationPanel',
-  props: { context: { type: Object, required: true }, loadMonitor: { type: Function, required: true } },
-  emits: ['deployment-selected', 'alert-acknowledged'],
-  setup(props) {
-    return () => h('div', { 'data-testid': 'federation-stub' }, props.context.modelId);
-  },
-});
+const CONTEXT = {
+  user: { id: 'user-operator', displayName: 'Alex Kim', email: 'alex@aurora.example' },
+  tenant: { id: 'tenant-aurora', name: 'Aurora Research' },
+  capabilities: ['deployments:read', 'observability:read', 'governance:read'] as const,
+};
 
-const IframePanelStub = defineComponent({
-  name: 'IframePanel',
-  props: { context: { type: Object, required: true }, remoteOrigin: { type: String, required: true } },
-  emits: ['ready', 'deployment-selected', 'alert-acknowledged'],
-  setup(props) {
-    return () => h('div', { 'data-testid': 'iframe-stub' }, props.context.modelId);
-  },
-});
+const { loadPlatformRemote } = vi.hoisted(() => ({ loadPlatformRemote: vi.fn() }));
+vi.mock('../src/lib/api', () => ({ restoreSession: vi.fn(), login: vi.fn(), logout: vi.fn() }));
+vi.mock('../src/lib/platform-remotes', () => ({
+  loadPlatformRemote,
+  REMOTES: [
+    { id: 'observability', label: 'Observability', capability: 'observability:read', entry: 'http://remote/observability', remoteName: 'observability' },
+    { id: 'governance', label: 'Governance', capability: 'governance:read', entry: 'http://remote/governance', remoteName: 'governance' },
+  ],
+}));
 
-function mountApp() {
-  return mount(App, {
-    global: {
-      stubs: {
-        FederationPanel: FederationPanelStub,
-        IframePanel: IframePanelStub,
-      },
-    },
-  });
-}
+const RemoteStub = defineComponent({ props: { platform: { type: Object, required: true } }, setup: () => () => h('div', { 'data-testid': 'remote-stub' }, 'team remote') });
 
-describe('App', () => {
-  it('shows the Federation panel by default with a composition boundary label', () => {
-    const wrapper = mountApp();
-    expect(wrapper.find('[data-testid="federation-stub"]').exists()).toBe(true);
-    expect(wrapper.find('[data-testid="iframe-stub"]').exists()).toBe(false);
-    expect(wrapper.find('[data-testid="composition-boundary"]').text()).toContain('Federation');
+describe('Platform Shell', () => {
+  beforeEach(async () => {
+    const api = await import('../src/lib/api');
+    vi.mocked(api.restoreSession).mockResolvedValue(CONTEXT);
+    loadPlatformRemote.mockResolvedValue({ default: RemoteStub });
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ healthy: 4, degraded: 1, rolling: 1 }) }));
+    window.history.replaceState({}, '', '/deployments');
   });
 
-  it('switches to the iframe panel when the iframe tab is activated', async () => {
-    const wrapper = mountApp();
-    await wrapper.findAll('[role="tab"]')[1]!.trigger('mousedown', { button: 0 });
+  it('keeps the signed-in identity and mission rail while changing team routes', async () => {
+    const wrapper = mount(App);
+    await flushPromises();
+    expect(wrapper.text()).toContain('Alex Kim');
+    expect(wrapper.findAll('nav button')).toHaveLength(3);
+    expect(wrapper.find('[data-testid="deployments-host"]').exists()).toBe(true);
 
-    expect(wrapper.find('[data-testid="iframe-stub"]').exists()).toBe(true);
-    expect(wrapper.find('[data-testid="federation-stub"]').exists()).toBe(false);
-    expect(wrapper.find('[data-testid="composition-boundary"]').text()).toContain('iframe');
-  });
-
-  it('propagates a cluster context change down to the active panel', async () => {
-    const wrapper = mountApp();
-    const clusterSelect = wrapper.findComponent({ name: 'ContextControls' });
-    await clusterSelect.vm.$emit('update:context', {
-      clusterId: 'cluster-borealis',
-      modelId: 'model-y',
-      environment: 'staging',
-    });
-
-    expect(wrapper.find('[data-testid="federation-stub"]').text()).toBe('model-y');
-  });
-
-  it('records a federation deployment-selected event in the Host event ledger', async () => {
-    const wrapper = mountApp();
-    await wrapper.findComponent(FederationPanelStub).vm.$emit('deployment-selected', 'deploy-002');
-
-    const entries = wrapper.findAll('[data-testid="ledger-entry"]');
-    expect(entries).toHaveLength(1);
-    expect(entries[0]!.text()).toContain('federation');
-    expect(entries[0]!.text()).toContain('deploy-002');
-  });
-
-  it('records an iframe ready + alert-acknowledged event in the Host event ledger', async () => {
-    const wrapper = mountApp();
-    await wrapper.findAll('[role="tab"]')[1]!.trigger('mousedown', { button: 0 });
-    const iframeStub = wrapper.findComponent(IframePanelStub);
-    await iframeStub.vm.$emit('ready');
-    await iframeStub.vm.$emit('alert-acknowledged', 'deploy-002');
-
-    const entries = wrapper.findAll('[data-testid="ledger-entry"]');
-    expect(entries).toHaveLength(2);
-    expect(entries.map((entry) => entry.text()).join(' ')).toContain('iframe');
+    await wrapper.findAll('nav button')[2]!.trigger('click');
+    await flushPromises();
+    expect(window.location.pathname).toBe('/governance');
+    expect(loadPlatformRemote).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'governance' }), false);
+    expect(wrapper.text()).toContain('Alex Kim');
   });
 });

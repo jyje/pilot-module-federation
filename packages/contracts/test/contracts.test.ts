@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
-  COMPOSITION_MODES,
   DEPLOYMENT_STATUSES,
   FRAMEWORK_TRACKS,
+  PLATFORM_CAPABILITIES,
+  hasCapability,
   isDeploymentContext,
   isHostContextMessage,
   isMonitorEvent,
@@ -19,8 +20,13 @@ describe('framework-neutral contracts', () => {
     expect(FRAMEWORK_TRACKS).toEqual(['vue', 'next']);
   });
 
-  it('exposes exactly the three supported composition modes', () => {
-    expect(COMPOSITION_MODES).toEqual(['federation', 'iframe', 'standalone']);
+  it('exposes platform capabilities and checks them against a safe display context', () => {
+    expect(PLATFORM_CAPABILITIES).toEqual(['deployments:read', 'observability:read', 'governance:read']);
+    expect(hasCapability({
+      user: { id: 'u-1', displayName: 'Alex', email: 'alex@example.com' },
+      tenant: { id: 't-1', name: 'Aurora' },
+      capabilities: ['deployments:read'],
+    }, 'deployments:read')).toBe(true);
   });
 
   it('exposes exactly the four supported deployment statuses', () => {

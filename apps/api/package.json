@@ -1,0 +1,23 @@
+{
+  "name": "@pilot/api",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^11.0.2",
+    "@pilot/contracts": "workspace:*",
+    "fastify": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "26.1.1",
+    "tsx": "^4.19.2",
+    "typescript": "5.9.3",
+    "vitest": "4.1.10"
+  }
+}

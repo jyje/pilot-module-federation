@@ -1,0 +1,36 @@
+import { chromium } from '@playwright/test';
+import { mkdir, writeFile } from 'node:fs/promises';
+
+const artifactDir = new URL('../artifacts/validation/', import.meta.url);
+await mkdir(artifactDir, { recursive: true });
+const browser = await chromium.launch({ headless: true });
+const page = await browser.newPage({ viewport: { width: 1440, height: 980 }, deviceScaleFactor: 1 });
+const logs = [];
+const responses = [];
+page.on('console', (message) => { if (message.type() === 'info' && message.text().startsWith('[')) logs.push(message.text()); });
+page.on('response', (response) => { if (new URL(response.url()).pathname.startsWith('/api/')) responses.push(`${response.status()} ${new URL(response.url()).pathname}`); });
+
+await page.goto('http://127.0.0.1:4000/', { waitUntil: 'networkidle' });
+await page.getByLabel('Name').fill('Jiyoon Park');
+await page.getByLabel('Email').fill('jiyoon@aurora.example');
+await page.getByLabel('Password').fill('arbitrary-password');
+await page.getByRole('button', { name: 'Sign in' }).click();
+await page.getByRole('button', { name: 'Send hello to MLOps' }).click();
+await page.getByRole('status').filter({ hasText: 'Hello, Jiyoon Park' }).waitFor({ state: 'visible' });
+await page.evaluate(() => window.scrollTo(0, 0));
+await page.screenshot({ path: new URL('next-deployments.png', artifactDir).pathname, fullPage: true });
+await page.getByRole('button', { name: 'Observability', exact: true }).click();
+await page.getByTestId('next-observability-hello').waitFor({ state: 'visible' });
+await page.getByTestId('next-observability-hello').click();
+await page.getByRole('status').filter({ hasText: 'Hello, Jiyoon Park' }).waitFor({ state: 'visible' });
+await page.evaluate(() => window.scrollTo(0, 0));
+await page.screenshot({ path: new URL('next-observability.png', artifactDir).pathname, fullPage: true });
+await page.getByRole('button', { name: 'Governance', exact: true }).click();
+await page.getByTestId('next-governance-remote').waitFor({ state: 'visible' });
+await page.getByTestId('next-governance-hello').click();
+await page.getByRole('status').filter({ hasText: 'Hello, Jiyoon Park' }).waitFor({ state: 'visible' });
+await page.evaluate(() => window.scrollTo(0, 0));
+await page.screenshot({ path: new URL('next-governance.png', artifactDir).pathname, fullPage: true });
+await writeFile(new URL('next-browser-log.json', artifactDir), `${JSON.stringify({ logs, responses }, null, 2)}\n`);
+await browser.close();
+console.log(JSON.stringify({ logs, responses }, null, 2));

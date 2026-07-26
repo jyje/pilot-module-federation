@@ -1,5 +1,5 @@
 @import 'tailwindcss';
-@import '@pilot/design-tokens/tokens.css';
+@import '@pilot/design-tokens/platform.css';
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
@@ -10,65 +10,8 @@
  * generated light-theme oklch defaults, so shadcn-vue primitives render in
  * the dark control-room palette without a separate light/dark toggle.
  */
-:root {
-  color-scheme: dark;
-  --radius: 0.625rem;
-
-  --background: hsl(var(--platform-background));
-  --foreground: hsl(var(--platform-foreground));
-  --card: hsl(var(--platform-surface));
-  --card-foreground: hsl(var(--platform-foreground));
-  --popover: hsl(var(--platform-surface));
-  --popover-foreground: hsl(var(--platform-foreground));
-  --primary: hsl(var(--platform-accent));
-  --primary-foreground: hsl(var(--platform-background));
-  --secondary: hsl(var(--platform-border));
-  --secondary-foreground: hsl(var(--platform-foreground));
-  --muted: hsl(var(--platform-surface));
-  --muted-foreground: hsl(var(--platform-muted));
-  --accent: hsl(var(--platform-border));
-  --accent-foreground: hsl(var(--platform-foreground));
-  --destructive: hsl(var(--platform-danger));
-  --border: hsl(var(--platform-border));
-  --input: hsl(var(--platform-border));
-  --ring: hsl(var(--platform-accent));
-  --chart-1: hsl(var(--platform-accent));
-  --chart-2: hsl(var(--platform-warning));
-  --chart-3: hsl(var(--platform-danger));
-  --chart-4: hsl(var(--platform-muted));
-  --chart-5: hsl(var(--platform-border));
-  --sidebar: hsl(var(--platform-surface));
-  --sidebar-foreground: hsl(var(--platform-foreground));
-  --sidebar-primary: hsl(var(--platform-accent));
-  --sidebar-primary-foreground: hsl(var(--platform-background));
-  --sidebar-accent: hsl(var(--platform-border));
-  --sidebar-accent-foreground: hsl(var(--platform-foreground));
-  --sidebar-border: hsl(var(--platform-border));
-  --sidebar-ring: hsl(var(--platform-accent));
-}
-
-body {
-  margin: 0;
-  background: hsl(var(--platform-background));
-  color: hsl(var(--platform-foreground));
-  font-family: var(--font-body);
-}
-
 @theme inline {
   --font-heading: var(--font-mono);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);

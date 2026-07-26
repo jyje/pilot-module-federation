@@ -1,88 +1,66 @@
 'use client';
 
-import { useState } from 'react';
-import type { DeploymentContext } from '@pilot/contracts';
-import { DEFAULT_CONTEXT } from '@pilot/fixtures';
-import { Badge } from '../components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { CompositionControls, type CompositionMode } from '../components/composition-controls';
-import { ContextControls } from '../components/context-controls';
-import { EventLedgerPanel } from '../components/event-ledger-panel';
-import { FederationPanel } from '../components/federation-panel';
-import { IframePanel } from '../components/iframe-panel';
-import { useEventLedger } from '../lib/event-ledger';
+import dynamic from 'next/dynamic';
+import { FormEvent, useEffect, useState } from 'react';
+import type { PlatformContext, PlatformRoute } from '@pilot/contracts';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
-const REMOTE_ORIGIN = process.env.NEXT_PUBLIC_NEXT_REMOTE_ORIGIN ?? 'http://127.0.0.1:3001';
+const ObservabilityRemote = dynamic(() => import('next_observability/ObservabilityRemote'), { ssr: false, loading: () => <p className="outlet-state">Synchronizing the SRE surface…</p> });
+const GovernanceRemote = dynamic(() => import('next_governance/GovernanceRemote'), { ssr: false, loading: () => <p className="outlet-state">Synchronizing the governance surface…</p> });
+
+const NAVIGATION: { id: PlatformRoute; label: string; capability: PlatformContext['capabilities'][number] }[] = [
+  { id: 'deployments', label: 'Deployments', capability: 'deployments:read' },
+  { id: 'observability', label: 'Observability', capability: 'observability:read' },
+  { id: 'governance', label: 'Governance', capability: 'governance:read' },
+];
+
+async function requestSession(): Promise<PlatformContext | null> {
+  const response = await fetch('/api/auth/session', { credentials: 'include' });
+  return response.ok ? (await response.json() as { context: PlatformContext }).context : null;
+}
+
+function routeFromPath(): PlatformRoute {
+  const value = window.location.pathname.slice(1);
+  return NAVIGATION.some((item) => item.id === value) ? value as PlatformRoute : 'deployments';
+}
 
 export default function HostPage() {
-  const [context, setContext] = useState<DeploymentContext>({ ...DEFAULT_CONTEXT });
-  const [mode, setMode] = useState<CompositionMode>('iframe');
-  const ledger = useEventLedger();
+  const [session, setSession] = useState<PlatformContext | null>(null);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('alex@aurora.example');
+  const [password, setPassword] = useState('demo-password');
+  const [route, setRoute] = useState<PlatformRoute>('deployments');
+  const [error, setError] = useState('');
+  const [hello, setHello] = useState('');
+  const [deploymentSummary, setDeploymentSummary] = useState<{ healthy: number; degraded: number; rolling: number } | null>(null);
+  const [remoteSummary, setRemoteSummary] = useState<Record<string, number> | null>(null);
 
-  return (
-    <main className="mx-auto w-[min(94rem,100%)] p-[clamp(1rem,2.5vw,2.5rem)]">
-      <header className="mb-5 flex items-start justify-between gap-4">
-        <div>
-          <p className="m-0 mb-1.5 font-mono text-xs uppercase tracking-wide text-[hsl(var(--platform-accent))]">
-            AI Platform Console
-          </p>
-          <h1 className="m-0 font-[family-name:var(--font-display)] text-[clamp(2rem,4vw,3.7rem)] tracking-tight">
-            Flight Deck Ledger
-          </h1>
-          <p className="mt-2 max-w-2xl text-[hsl(var(--platform-muted))]">
-            Coordinate model deployment evidence without losing operational context.
-          </p>
-        </div>
-        <Badge variant="secondary">Next Host · 3000</Badge>
-      </header>
+  useEffect(() => { void requestSession().then((context) => { setSession(context); setRoute(routeFromPath()); }); }, []);
+  useEffect(() => {
+    const onPopState = () => setRoute(routeFromPath());
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+  useEffect(() => {
+    if (session && route === 'deployments') void fetch('/api/deployments/summary', { credentials: 'include' }).then(async (response) => response.ok && setDeploymentSummary(await response.json()));
+  }, [route, session]);
+  useEffect(() => {
+    if (!session || route === 'deployments') { setRemoteSummary(null); return; }
+    void fetch(`/api/${route}/summary`, { credentials: 'include' }).then(async (response) => response.ok && setRemoteSummary(await response.json()));
+  }, [route, session]);
 
-      <Card className="mb-4 border-[hsl(var(--platform-border))] bg-[hsl(var(--platform-surface))]">
-        <CardHeader>
-          <CardTitle>Deployment context</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4">
-          <ContextControls context={context} onContextChange={setContext} />
-          <CompositionControls mode={mode} onModeChange={setMode} />
-          <p
-            data-testid="composition-boundary"
-            className="m-0 font-mono text-xs uppercase tracking-wide text-[hsl(var(--platform-muted))]"
-          >
-            {mode === 'federation' ? 'Federation component boundary' : 'iframe document boundary'}
-          </p>
-        </CardContent>
-      </Card>
+  async function signIn(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); setError('');
+    const response = await fetch('/api/auth/login', { method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name, email, password }) });
+    if (!response.ok) { setError((await response.json() as { error: string }).error); return; }
+    const context = await requestSession(); setSession(context); setRoute(routeFromPath()); console.info('[next-platform-shell] session-established', { userId: context?.user.id, tenantId: context?.tenant.id });
+  }
+  function navigate(next: PlatformRoute) { window.history.pushState({}, '', `/${next}`); setRoute(next); setHello(''); }
+  function action(team: string) { setHello(`Hello, ${session!.user.displayName}. ${team} received your action.`); console.info('[next-platform-shell] operator-action', { tenantId: session!.tenant.id, team }); }
 
-      <section
-        aria-label="Composed monitor and Host event evidence"
-        className="grid grid-cols-1 gap-4 min-[900px]:grid-cols-[minmax(0,2fr)_minmax(18rem,0.8fr)]"
-      >
-        <div className="min-h-[28rem] rounded-[var(--radius)] border border-[hsl(var(--platform-border))] bg-[hsl(var(--platform-surface))] p-[clamp(0.75rem,2vw,1.25rem)]">
-          {mode === 'federation' ? (
-            <FederationPanel
-              context={context}
-              onDeploymentSelected={(id) =>
-                ledger.record({ type: 'deployment-selected', deploymentId: id }, 'federation')
-              }
-              onAlertAcknowledged={(id) =>
-                ledger.record({ type: 'alert-acknowledged', deploymentId: id }, 'federation')
-              }
-            />
-          ) : (
-            <IframePanel
-              context={context}
-              remoteOrigin={REMOTE_ORIGIN}
-              onReady={() => ledger.record({ type: 'monitor-ready' }, 'iframe')}
-              onDeploymentSelected={(id) =>
-                ledger.record({ type: 'deployment-selected', deploymentId: id }, 'iframe')
-              }
-              onAlertAcknowledged={(id) =>
-                ledger.record({ type: 'alert-acknowledged', deploymentId: id }, 'iframe')
-              }
-            />
-          )}
-        </div>
-        <EventLedgerPanel entries={ledger.entries} />
-      </section>
-    </main>
-  );
+  if (!session) return <main className="auth-shell"><form onSubmit={signIn}><Card className="login-card"><p className="eyebrow">AI Platform / secure entry</p><h1>Open the mission rail.</h1><p>Choose the display name shown to every team surface. Use any non-empty password; the local Fastify API creates a signed, HttpOnly demo session.</p><label>Name<input aria-label="Name" value={name} onChange={(event) => setName(event.target.value)} required /></label><label>Email<input aria-label="Email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label><label>Password<input aria-label="Password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} required /></label>{error && <p className="error">{error}</p>}<Button type="submit">Sign in</Button></Card></form></main>;
+
+  const available = NAVIGATION.filter((item) => session.capabilities.includes(item.capability));
+  return <main className="platform-shell"><aside className="mission-rail"><div className="brand">AP</div><p className="tenant">{session.tenant.name}</p><nav aria-label="Platform navigation">{available.map((item) => <Button key={item.id} variant="ghost" className={route === item.id ? 'rail-button active' : 'rail-button'} onClick={() => navigate(item.id)}><span className="rail-dot" />{item.label}</Button>)}</nav><div className="identity"><strong>{session.user.displayName}</strong><span>{session.user.email}</span><Button variant="outline" onClick={() => { void fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }); setSession(null); window.history.pushState({}, '', '/'); }}>Sign out</Button></div></aside><section className="workspace"><header><p className="eyebrow">{route === 'deployments' ? 'Deployments / Host-owned' : `${route} / HTTP Remote`} / {session.tenant.id}</p><p className="session-mark">Session shared · HttpOnly cookie</p></header><div className="remote-outlet">{route === 'deployments' && <section className="domain-view"><p className="eyebrow">MLOps / {session.tenant.name} / Host-owned</p><h2>Deployment runway</h2>{deploymentSummary ? <><div className="metrics"><div><strong>{deploymentSummary.healthy}</strong><span>healthy</span></div><div><strong>{deploymentSummary.degraded}</strong><span>needs attention</span></div><div><strong>{deploymentSummary.rolling}</strong><span>rolling out</span></div></div><div className="action"><Button onClick={() => action('MLOps')}>Send hello to MLOps</Button></div></> : <p className="outlet-state">Checking the deployment runway…</p>}</section>}{route === 'observability' && <ObservabilityRemote platform={session} summary={remoteSummary} onHello={() => action('SRE')} />}{route === 'governance' && <GovernanceRemote platform={session} summary={remoteSummary} onHello={() => action('Security')} />}{hello && <p role="status" className="hello-status">{hello}</p>}</div></section></main>;
 }

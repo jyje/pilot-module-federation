@@ -1,6 +1,17 @@
 export type FrameworkTrack = 'vue' | 'next';
 
-export type CompositionMode = 'federation' | 'iframe' | 'standalone';
+export type PlatformCapability =
+  | 'deployments:read'
+  | 'observability:read'
+  | 'governance:read';
+
+export type PlatformRoute = 'deployments' | 'observability' | 'governance';
+
+export interface PlatformContext {
+  user: { id: string; displayName: string; email: string };
+  tenant: { id: string; name: string };
+  capabilities: readonly PlatformCapability[];
+}
 
 export type Environment = 'production' | 'staging';
 
@@ -27,7 +38,11 @@ export type MonitorEvent =
 
 export const FRAMEWORK_TRACKS: readonly FrameworkTrack[] = ['vue', 'next'];
 
-export const COMPOSITION_MODES: readonly CompositionMode[] = ['federation', 'iframe', 'standalone'];
+export const PLATFORM_CAPABILITIES: readonly PlatformCapability[] = [
+  'deployments:read',
+  'observability:read',
+  'governance:read',
+];
 
 export const DEPLOYMENT_STATUSES: readonly DeploymentStatus[] = [
   'healthy',
@@ -79,18 +94,17 @@ export function isHostContextMessage(value: unknown): value is HostContextMessag
   return type === 'context' && isDeploymentContext(payload);
 }
 
+export function hasCapability(context: PlatformContext, capability: PlatformCapability): boolean {
+  return context.capabilities.includes(capability);
+}
+
+/** @deprecated Kept temporarily for the pre-Shell iframe migration source. */
 export type RemoteReadyMessage = { type: 'monitor-ready' };
-
-/** Remote -> Host postMessage envelope: either the one-time ready signal or a semantic MonitorEvent. */
+/** @deprecated Kept temporarily for the pre-Shell iframe migration source. */
 export type RemoteToHostMessage = RemoteReadyMessage | MonitorEvent;
-
+/** @deprecated Kept temporarily for the pre-Shell iframe migration source. */
 export function isRemoteToHostMessage(value: unknown): value is RemoteToHostMessage {
-  if (typeof value !== 'object' || value === null || !('type' in value)) {
-    return false;
-  }
+  if (typeof value !== 'object' || value === null || !('type' in value)) return false;
   const { type } = value as { type: unknown };
-  if (type === 'monitor-ready') {
-    return true;
-  }
-  return isMonitorEvent(value);
+  return type === 'monitor-ready' || isMonitorEvent(value);
 }

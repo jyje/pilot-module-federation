@@ -1,172 +1,101 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import type { DeploymentContext } from '@pilot/contracts';
-import { DEFAULT_CONTEXT } from '@pilot/fixtures';
-import { Badge } from './components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
-import CompositionControls from './components/CompositionControls.vue';
-import ContextControls from './components/ContextControls.vue';
-import EventLedgerPanel from './components/EventLedgerPanel.vue';
-import FederationPanel from './components/FederationPanel.vue';
-import IframePanel from './components/IframePanel.vue';
-import { createEventLedger } from './lib/eventLedger';
-import { loadFederatedMonitor } from './lib/federatedMonitor';
+import { computed, onMounted, onUnmounted, ref, shallowRef, watch, type Component } from 'vue';
+import type { PlatformContext, PlatformRoute } from '@pilot/contracts';
+import { hasCapability } from '@pilot/contracts';
+import { login, logout, restoreSession } from './lib/api';
+import { loadPlatformRemote, REMOTES, type RemoteRegistration } from './lib/platform-remotes';
+import { Button } from './components/ui/button';
+import { Card } from './components/ui/card';
+import DeploymentsHostView from './components/DeploymentsHostView.vue';
 
-type CompositionMode = 'federation' | 'iframe';
+const session = ref<PlatformContext | null>(null);
+const name = ref('');
+const email = ref('alex@aurora.example');
+const password = ref('demo-password');
+const authError = ref('');
+const sessionLoading = ref(true);
+const route = ref<PlatformRoute>('deployments');
+const remote = shallowRef<Component | null>(null);
+const remoteError = ref('');
+const remoteLoading = ref(false);
+let currentRequest = 0;
+const handlePopState = () => { route.value = routeFromPath(); };
 
-const context = ref<DeploymentContext>({ ...DEFAULT_CONTEXT });
-const mode = ref<CompositionMode>('federation');
-const ledger = createEventLedger();
-const remoteOrigin = import.meta.env.VITE_VUE_REMOTE_ORIGIN ?? 'http://127.0.0.1:4174';
-const remoteEntry = import.meta.env.VITE_VUE_REMOTE_ENTRY ?? `${remoteOrigin}/remoteEntry.js`;
+const navigation = computed(() => session.value ? [{ id: 'deployments' as const, label: 'Deployments', capability: 'deployments:read' as const }, ...REMOTES].filter((item) => hasCapability(session.value!, item.capability)) : []);
+const activeRemote = computed<RemoteRegistration | undefined>(() => REMOTES.find((item) => item.id === route.value));
 
-const loadMonitor = (retry = false) => loadFederatedMonitor(remoteEntry, retry);
-
-function updateContext(next: DeploymentContext): void {
-  context.value = next;
+function routeFromPath(): PlatformRoute {
+  const segment = window.location.pathname.split('/')[1];
+  return ['deployments', ...REMOTES.map((item) => item.id)].includes(segment ?? '') ? segment as PlatformRoute : 'deployments';
 }
 
-function updateMode(next: CompositionMode): void {
-  mode.value = next;
+function navigate(next: PlatformRoute): void {
+  if (!navigation.value.some((item) => item.id === next)) return;
+  window.history.pushState({}, '', `/${next}`);
+  route.value = next;
 }
 
-function recordDeployment(id: string, source: CompositionMode): void {
-  ledger.record({ type: 'deployment-selected', deploymentId: id }, source);
+async function mountRemote(retry = false): Promise<void> {
+  const target = activeRemote.value;
+  if (!target) { remote.value = null; remoteLoading.value = false; return; }
+  const request = ++currentRequest;
+  remote.value = null;
+  remoteError.value = '';
+  remoteLoading.value = true;
+  try {
+    const module = await loadPlatformRemote(target, retry);
+    if (request === currentRequest) {
+      remote.value = module.default;
+      console.info('[platform-shell] remote-mounted', { route: target.id, tenantId: session.value?.tenant.id });
+    }
+  } catch (cause) {
+    if (request === currentRequest) remoteError.value = cause instanceof Error ? cause.message : 'The team surface could not be loaded.';
+  } finally {
+    if (request === currentRequest) remoteLoading.value = false;
+  }
 }
 
-function recordAcknowledgement(id: string, source: CompositionMode): void {
-  ledger.record({ type: 'alert-acknowledged', deploymentId: id }, source);
+async function signIn(): Promise<void> {
+  authError.value = '';
+  try {
+    session.value = await login(name.value, email.value, password.value);
+    console.info('[platform-shell] session-established', { userId: session.value.user.id, tenantId: session.value.tenant.id, capabilities: [...session.value.capabilities].join(',') });
+  } catch (cause) { authError.value = cause instanceof Error ? cause.message : 'Sign-in failed.'; }
 }
 
-function recordReady(): void {
-  ledger.record({ type: 'monitor-ready' }, 'iframe');
-}
+async function signOut(): Promise<void> { await logout(); session.value = null; remote.value = null; window.history.pushState({}, '', '/'); }
+
+watch([route, activeRemote], () => { if (session.value && route.value !== 'deployments') void mountRemote(); else { remote.value = null; remoteLoading.value = false; } });
+
+onMounted(async () => {
+  try { session.value = await restoreSession(); } catch (cause) { authError.value = cause instanceof Error ? cause.message : 'Session restore failed.'; }
+  sessionLoading.value = false;
+  route.value = routeFromPath();
+  if (session.value && !navigation.value.some((item) => item.id === route.value)) navigate(navigation.value[0]!.id);
+  window.addEventListener('popstate', handlePopState);
+});
+onUnmounted(() => window.removeEventListener('popstate', handlePopState));
 </script>
 
 <template>
-  <main class="console-shell">
-    <header class="console-header">
-      <div>
-        <p class="console-eyebrow">AI Platform Console</p>
-        <h1>Flight Deck Ledger</h1>
-        <p class="console-summary">Coordinate model deployment evidence without losing operational context.</p>
-      </div>
-      <Badge variant="secondary">Vue Host · 4173</Badge>
-    </header>
-
-    <Card class="control-deck">
-      <CardHeader>
-        <CardTitle>Deployment context</CardTitle>
-      </CardHeader>
-      <CardContent class="control-deck__content">
-        <ContextControls :context="context" @update:context="updateContext" />
-        <CompositionControls :mode="mode" @update:mode="updateMode" />
-        <p data-testid="composition-boundary" class="boundary-label">
-          {{ mode === 'federation' ? 'Federation component boundary' : 'iframe document boundary' }}
-        </p>
-      </CardContent>
-    </Card>
-
-    <section class="composition-grid" aria-label="Composed monitor and Host event evidence">
-      <div class="composition-stage">
-        <FederationPanel
-          v-if="mode === 'federation'"
-          :context="context"
-          :load-monitor="loadMonitor"
-          @deployment-selected="(id) => recordDeployment(id, 'federation')"
-          @alert-acknowledged="(id) => recordAcknowledgement(id, 'federation')"
-        />
-        <IframePanel
-          v-else
-          :context="context"
-          :remote-origin="remoteOrigin"
-          @ready="recordReady"
-          @deployment-selected="(id) => recordDeployment(id, 'iframe')"
-          @alert-acknowledged="(id) => recordAcknowledgement(id, 'iframe')"
-        />
-      </div>
-      <EventLedgerPanel :entries="ledger.entries.value" />
+  <main v-if="sessionLoading" class="auth-shell"><p>Restoring the control room…</p></main>
+  <main v-else-if="!session" class="auth-shell">
+    <form @submit.prevent="signIn"><Card class="login-card">
+      <p class="eyebrow">AI Platform / secure entry</p><h1>Open the mission rail.</h1>
+      <p>Choose the display name shown to every team surface. Use any non-empty password; the local Fastify API creates a signed, HttpOnly demo session.</p>
+      <label>Name <input v-model="name" autocomplete="name" required /></label>
+      <label>Email <input v-model="email" type="email" required /></label>
+      <label>Password <input v-model="password" type="password" required /></label>
+      <p v-if="authError" class="error">{{ authError }}</p><Button type="submit">Sign in</Button>
+    </Card></form>
+  </main>
+  <main v-else class="platform-shell">
+    <aside class="mission-rail"><div class="brand">AP</div><p class="tenant">{{ session.tenant.name }}</p>
+      <nav aria-label="Platform navigation"><button v-for="item in navigation" :key="item.id" :class="['rail-button', { active: route === item.id }]" @click="navigate(item.id)"><span class="rail-dot" />{{ item.label }}</button></nav>
+      <div class="identity"><strong>{{ session.user.displayName }}</strong><span>{{ session.user.email }}</span><button class="rail-button" @click="signOut">Sign out</button></div>
+    </aside>
+    <section class="workspace"><header><p class="eyebrow">{{ route === 'deployments' ? 'Deployments / Host-owned' : activeRemote?.label + ' / HTTP Remote' }} / {{ session.tenant.id }}</p><p class="session-mark">Session shared · HttpOnly cookie</p></header>
+      <div class="remote-outlet"><DeploymentsHostView v-if="route === 'deployments'" :platform="session" /><p v-else-if="remoteLoading" class="loading">Synchronizing team surface…</p><div v-else-if="remoteError" class="remote-error"><strong>Remote unavailable</strong><p>{{ remoteError }}</p><button class="platform-button" @click="mountRemote(true)">Retry</button></div><component :is="remote" v-else-if="remote" :platform="session" /></div>
     </section>
   </main>
 </template>
-
-<style scoped>
-.console-shell {
-  width: min(94rem, 100%);
-  margin: 0 auto;
-  padding: clamp(1rem, 2.5vw, 2.5rem);
-}
-
-.console-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.25rem;
-}
-
-.console-eyebrow,
-.boundary-label {
-  margin: 0 0 0.35rem;
-  color: hsl(var(--platform-accent));
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-h1 {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: clamp(2rem, 4vw, 3.7rem);
-  letter-spacing: -0.045em;
-}
-
-.console-summary {
-  max-width: 44rem;
-  margin: 0.55rem 0 0;
-  color: hsl(var(--platform-muted));
-}
-
-.control-deck,
-.composition-stage {
-  border-color: hsl(var(--platform-border));
-  background: hsl(var(--platform-surface));
-}
-
-.control-deck__content {
-  display: grid;
-  gap: 1rem;
-}
-
-.boundary-label {
-  margin: 0;
-  color: hsl(var(--platform-muted));
-}
-
-.composition-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(18rem, 0.8fr);
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.composition-stage {
-  min-height: 28rem;
-  padding: clamp(0.75rem, 2vw, 1.25rem);
-  border: 1px solid hsl(var(--platform-border));
-  border-radius: var(--radius);
-}
-
-@media (max-width: 900px) {
-  .composition-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 560px) {
-  .console-header {
-    flex-direction: column;
-  }
-}
-</style>
